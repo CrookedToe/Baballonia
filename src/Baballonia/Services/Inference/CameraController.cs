@@ -144,7 +144,6 @@ public class CameraController : IDisposable
         bool valid;
         bool useColor;
         Mat? image;
-        (int width, int height) dims;
 
         if (_overlayRectangle is { X: 0, Y: 0, Width: 0, Height: 0 })
         {
@@ -175,7 +174,7 @@ public class CameraController : IDisposable
                 valid = _inferenceService.GetImage(CameraSettings, out image);
                 if (valid) // Don't run infer on raw images
                 {
-                    CameraSize = (image.Width, image.Height);
+                    CameraSize = (image!.Width, image.Height);
                     _inferenceService.GetExpressionData(CameraSettings, out ArExpressions);
                 }
                 break;

@@ -42,11 +42,11 @@ public class ParameterSenderService(
         { "RightEyeX", "/RightEyeX" },
         { "RightEyeY", "/RightEyeY" },
         { "RightEyeLid", "/RightEyeLid" },
-        { "BrowRaise", "/BrowRaise" },
-        { "BrowAngry", "/BrowAngry" },
-        { "EyeWiden", "/EyeWiden" },
-        { "EyeSquint", "/EyeSquint" },
-        { "EyeDilate", "/EyeDilate" },
+        // { "BrowRaise", "/BrowRaise" },
+        // { "BrowAngry", "/BrowAngry" },
+        // { "EyeWiden", "/EyeWiden" },
+        // { "EyeSquint", "/EyeSquint" },
+        // { "EyeDilate", "/EyeDilate" },
     };
 
     private readonly Dictionary<string, string> _faceExpressionMap = new()

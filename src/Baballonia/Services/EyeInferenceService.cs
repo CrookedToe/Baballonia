@@ -32,6 +32,10 @@ public class EyeInferenceService(ILogger<InferenceService> logger, ILocalSetting
     private readonly ILogger<InferenceService> _logger = logger;
     private readonly ILocalSettingsService _settingsService = settingsService;
 
+    // Tracks if we're using a single stereo camera for both eyes
+    private bool _usingStereoCamera = false;
+    private Camera _stereoCamera = Camera.Left; // Which camera is providing the stereo feed
+
     // Minimum number of frames required before processing
     private const int ExpectedRawExpressions = 6;
     private const int FramesForInference = 4;
@@ -45,6 +49,19 @@ public class EyeInferenceService(ILogger<InferenceService> logger, ILocalSetting
         {
             _logger.LogInformation("Starting Eye Inference Service...");
 
+            // Check if we're using a stereo camera (same address for both eyes)
+            if (camera == Camera.Left &&
+                PlatformConnectors[(int)Camera.Right].Item2 != null &&
+                PlatformConnectors[(int)Camera.Right].Item2.Capture != null &&
+                PlatformConnectors[(int)Camera.Right].Item2.Capture.Url == cameraAddress)
+            {
+                _usingStereoCamera = true;
+                _stereoCamera = Camera.Left;
+                _logger.LogInformation("Stereo camera detected. Using single camera feed for both eyes.");
+                return; // Skip setup for right eye as it's the same camera
+            }
+
+            _usingStereoCamera = false;
             SessionOptions sessionOptions = SetupSessionOptions();
             await ConfigurePlatformSpecificGpu(sessionOptions);
 
@@ -88,32 +105,64 @@ public class EyeInferenceService(ILogger<InferenceService> logger, ILocalSetting
     /// <returns>True if frame was successfully captured and added to queue</returns>
     private bool CaptureFrame(CameraSettings cameraSettings)
     {
-        if (PlatformConnectors[(int)Camera.Left].Item2 is null ||
-            PlatformConnectors[(int)Camera.Left].Item2.Capture is null ||
-            !PlatformConnectors[(int)Camera.Left].Item2.Capture!.IsReady ||
-            PlatformConnectors[(int)Camera.Right].Item2 is null ||
-            PlatformConnectors[(int)Camera.Right].Item2.Capture is null ||
-            !PlatformConnectors[(int)Camera.Right].Item2.Capture!.IsReady)
+        // Check if we're using a stereo camera
+        if (!_usingStereoCamera)
         {
-            return false;
+            // Original dual-camera check
+            if (PlatformConnectors[(int)Camera.Left].Item2 is null ||
+                PlatformConnectors[(int)Camera.Left].Item2.Capture is null ||
+                !PlatformConnectors[(int)Camera.Left].Item2.Capture!.IsReady ||
+                PlatformConnectors[(int)Camera.Right].Item2 is null ||
+                PlatformConnectors[(int)Camera.Right].Item2.Capture is null ||
+                !PlatformConnectors[(int)Camera.Right].Item2.Capture!.IsReady)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            // Only check the stereo camera
+            if (PlatformConnectors[(int)_stereoCamera].Item2 is null ||
+                PlatformConnectors[(int)_stereoCamera].Item2.Capture is null ||
+                !PlatformConnectors[(int)_stereoCamera].Item2.Capture!.IsReady)
+            {
+                return false;
+            }
         }
 
-        Mat matLeft = new Mat<byte>(PlatformConnectors[(int)Camera.Left].Item1.InputSize.Height,
-            PlatformConnectors[(int)Camera.Left].Item1.InputSize.Width);
-        PlatformConnectors[(int)Camera.Left].Item2.TransformRawImage(matLeft, cameraSettings);
-        if (matLeft.Empty()) return false;
-        Mat histMatLeft = new();
-        Cv2.EqualizeHist(matLeft, histMatLeft);
+        Mat matCombined;
 
-        Mat matRight = new Mat<byte>(PlatformConnectors[(int)Camera.Right].Item1.InputSize.Height,
-            PlatformConnectors[(int)Camera.Right].Item1.InputSize.Width);
-        PlatformConnectors[(int)Camera.Right].Item2.TransformRawImage(matRight, cameraSettings);
-        if (matRight.Empty()) return false;
-        Mat histMatRight = new();
-        Cv2.EqualizeHist(matRight, histMatRight);
+        if (!_usingStereoCamera)
+        {
+            // Original dual-camera processing
+            Mat matLeft = new Mat<byte>(PlatformConnectors[(int)Camera.Left].Item1.InputSize.Height,
+                PlatformConnectors[(int)Camera.Left].Item1.InputSize.Width);
+            PlatformConnectors[(int)Camera.Left].Item2.TransformRawImage(matLeft, cameraSettings);
+            if (matLeft.Empty()) return false;
+            Mat histMatLeft = new();
+            Cv2.EqualizeHist(matLeft, histMatLeft);
 
-        Mat matCombined = new Mat();
-        Cv2.Merge([histMatLeft, histMatRight], matCombined);
+            Mat matRight = new Mat<byte>(PlatformConnectors[(int)Camera.Right].Item1.InputSize.Height,
+                PlatformConnectors[(int)Camera.Right].Item1.InputSize.Width);
+            PlatformConnectors[(int)Camera.Right].Item2.TransformRawImage(matRight, cameraSettings);
+            if (matRight.Empty()) return false;
+            Mat histMatRight = new();
+            Cv2.EqualizeHist(matRight, histMatRight);
+
+            matCombined = new Mat();
+            Cv2.Merge([histMatLeft, histMatRight], matCombined);
+        }
+        else
+        {
+            // Stereo camera processing - the camera feed already contains both eyes
+            Mat stereoMat = new Mat<byte>(PlatformConnectors[(int)_stereoCamera].Item1.InputSize.Height,
+                PlatformConnectors[(int)_stereoCamera].Item1.InputSize.Width);
+            PlatformConnectors[(int)_stereoCamera].Item2.TransformRawImage(stereoMat, cameraSettings);
+            if (stereoMat.Empty()) return false;
+
+            // The stereo mat should already be in the correct format (CV_8UC2)
+            matCombined = stereoMat.Clone();
+        }
 
         var frameDataCombined = new FrameData
         {
@@ -197,7 +246,6 @@ public class EyeInferenceService(ILogger<InferenceService> logger, ILocalSetting
 
         var left_eye_yaw_corrected = (right_yaw * (1 - left_lid)) + (left_yaw * left_lid);
         var right_eye_yaw_corrected = (left_yaw * (1 - right_lid)) + (right_yaw * right_lid);
-
 
         // [left pitch, left yaw, left lid...
         float[] convertedExpressions = new float[ExpectedRawExpressions];
@@ -304,7 +352,6 @@ public class EyeInferenceService(ILogger<InferenceService> logger, ILocalSetting
     /// </summary>
     /// <param name="color"></param>
     /// <param name="image"></param>
-    /// <param name="dimensions"></param>
     /// <param name="cameraSettings"></param>
     /// <returns></returns>
     public override bool GetRawImage(CameraSettings cameraSettings, ColorType color, out Mat image)
@@ -355,7 +402,6 @@ public class EyeInferenceService(ILogger<InferenceService> logger, ILocalSetting
     /// </summary>
     /// <param name="cameraSettings"></param>
     /// <param name="image"></param>
-    /// <param name="dimensions"></param>
     /// <returns></returns>
     public override bool GetImage(CameraSettings cameraSettings, out Mat? image)
     {
