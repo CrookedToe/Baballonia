@@ -142,6 +142,12 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
         using var leftRoi = new Mat(frame, leftHalf);
         using var rightRoi = new Mat(frame, rightHalf);
 
+        var corruptionResult = _fastCorruptionDetector.ProcessFramePair(leftRoi, rightRoi);
+        if (corruptionResult.LeftCorrupted || corruptionResult.RightCorrupted)
+        {
+            return false;
+        }
+
         // Resize ROIs to the expected input size
         Cv2.Resize(leftRoi, leftEyeMat, new Size(
             PlatformConnectors[(int)Camera.Left].Item1.InputSize.Width,

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using Baballonia.Contracts;
+using Baballonia.Helpers;
 using Baballonia.Services.Inference.Enums;
 using Baballonia.Services.Inference.Models;
 using Baballonia.Services.Inference.Platforms;
@@ -15,6 +16,7 @@ public abstract class InferenceService(ILogger<InferenceService> logger, ILocalS
 {
     public abstract (PlatformSettings, PlatformConnector)[] PlatformConnectors { get; }
 
+    protected readonly FastCorruptionDetector _fastCorruptionDetector = new();
     protected readonly Stopwatch sw = Stopwatch.StartNew();
 
     /// <summary>

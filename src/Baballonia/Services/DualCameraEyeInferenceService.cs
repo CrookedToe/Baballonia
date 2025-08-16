@@ -110,6 +110,16 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
             return false;
         }
 
+        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture!.RawMat is null)
+        {
+            return false;
+        }
+
+        if (_fastCorruptionDetector.IsCorrupted(PlatformConnectors[(int)Camera.Left].Item2?.Capture!.RawMat!).isCorrupted)
+        {
+            return false;
+        }
+
         using var leftEyeMat = new Mat<byte>(
             PlatformConnectors[(int)Camera.Left].Item1.InputSize.Height,
             PlatformConnectors[(int)Camera.Left].Item1.InputSize.Width);
