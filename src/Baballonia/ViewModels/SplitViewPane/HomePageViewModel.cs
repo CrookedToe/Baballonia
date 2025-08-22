@@ -306,7 +306,7 @@ public partial class HomePageViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        model.Controller.StartCamera(camera);
+        await model.Controller.StartCamera(camera);
 
         if (model.Name != "FaceCamera")
         {
@@ -322,7 +322,7 @@ public partial class HomePageViewModel : ViewModelBase, IDisposable
                             {
                                 if (App.DeviceEnumerator.Cameras!.TryGetValue(RightCamera.DisplayAddress, out var mappedAddress))
                                 {
-                                    _processingLoopService.RightCameraController.StartCamera(mappedAddress);
+                                    await _processingLoopService.RightCameraController.StartCamera(mappedAddress);
                                 }
                             }
                         }
@@ -337,7 +337,7 @@ public partial class HomePageViewModel : ViewModelBase, IDisposable
                             {
                                 if (App.DeviceEnumerator.Cameras!.TryGetValue(LeftCamera.DisplayAddress, out var mappedAddress))
                                 {
-                                    _processingLoopService.LeftCameraController.StartCamera(mappedAddress);
+                                    await _processingLoopService.LeftCameraController.StartCamera(mappedAddress);
                                 }
                             }
                         }

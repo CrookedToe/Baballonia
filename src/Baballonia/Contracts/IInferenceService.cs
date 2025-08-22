@@ -19,9 +19,9 @@ public interface IInferenceService
 
     public bool GetImage(CameraSettings cameraSettings, out Mat? image);
 
-    public void ConfigurePlatformConnectors(Camera camera, string cameraIndex);
+    public Task ConfigurePlatformConnectors(Camera camera, string cameraIndex);
 
-    public void SetupInference(Camera camera, string cameraAddress);
+    public Task SetupInference(Camera camera, string cameraAddress);
     public SessionOptions SetupSessionOptions();
     public Task ConfigurePlatformSpecificGpu(SessionOptions sessionOptions);
 

@@ -40,6 +40,19 @@
                 </controls:SettingsBlock.SettingsContent>
             </controls:SettingsBlock>
 
+            <controls:SettingsBlock
+                Title="Log Level"
+                Description="Set the minimum log level for file logging. Debug shows the most detail."
+                IconPath="DocumentTextRegular">
+                <controls:SettingsBlock.SettingsContent>
+                    <ComboBox 
+                        x:Name="LogLevelCombo" 
+                        VerticalAlignment="Center"
+                        ItemsSource="{Binding LogLevels}"
+                        SelectedItem="{Binding LogLevel}" />
+                </controls:SettingsBlock.SettingsContent>
+            </controls:SettingsBlock>
+
             <Expander
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"

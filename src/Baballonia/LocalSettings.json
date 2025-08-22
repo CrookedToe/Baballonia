@@ -365,5 +365,6 @@
   "AppSettings_OneEuroMinFreqCutoff": 1,
   "AppSettings_OneEuroSpeedCutoff": 1,
   "AppSettings_UseGPU": true,
-  "AppSettings_CheckForUpdates": false
+  "AppSettings_CheckForUpdates": false,
+  "AppSettings_LogLevel": "Debug"
 }

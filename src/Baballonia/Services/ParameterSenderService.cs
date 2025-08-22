@@ -7,6 +7,7 @@ using Baballonia.Contracts;
 using Baballonia.Helpers;
 using Baballonia.Services.Inference;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using OscCore;
 
 namespace Baballonia.Services;
@@ -14,7 +15,8 @@ namespace Baballonia.Services;
 public class ParameterSenderService(
     OscSendService sendService,
     ILocalSettingsService localSettingsService,
-    ICalibrationService calibrationService) : BackgroundService
+    ICalibrationService calibrationService,
+    ILogger<ParameterSenderService> logger) : BackgroundService
 {
     private readonly Queue<OscMessage> _sendQueue = new();
 
@@ -80,6 +82,10 @@ public class ParameterSenderService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        logger.LogInformation("Starting Parameter Sender Service...");
+        logger.LogDebug("OSC parameter mapping initialized with {EyeCount} eye expressions and {FaceCount} face expressions", 
+            EyeExpressionMap.Count, FaceExpressionMap.Count);
+        
         while (!cancellationToken.IsCancellationRequested)
         {
             try

@@ -30,9 +30,9 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
     /// <summary>
     /// Loads/reloads the ONNX model for a specified camera
     /// </summary>
-    public override void SetupInference(Camera camera, string cameraAddress)
+    public override async Task SetupInference(Camera camera, string cameraAddress)
     {
-        Task.Run(async () =>
+        await Task.Run(async () =>
         {
             _logger.LogInformation("Starting Face Inference Service...");
 
@@ -62,7 +62,7 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
 
             var platformSettings = new PlatformSettings(inputSize, session, tensor, filter, 0f, inputName, modelName);
             PlatformConnectors[0] = (platformSettings, null)!;
-            ConfigurePlatformConnectors(camera, cameraAddress);
+            await ConfigurePlatformConnectors(camera, cameraAddress);
 
             _logger.LogInformation("Face Inference started!");
         });
@@ -80,11 +80,23 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
 
         var platformSettings = PlatformConnectors[0].Item1;
         var platformConnector = PlatformConnectors[0].Item2;
-        if (platformConnector is null) return false;
-        if (platformConnector.Capture is null) return false;
+        if (platformConnector is null) 
+        {
+            _logger.LogDebug("FaceInferenceService: GetExpressionData failed - platform connector is null");
+            return false;
+        }
+        if (platformConnector.Capture is null) 
+        {
+            _logger.LogDebug("FaceInferenceService: GetExpressionData failed - capture instance is null");
+            return false;
+        }
 
         // Test if the camera is not ready or connecting to new source
-        if (!platformConnector.Capture!.IsReady) return false;
+        if (!platformConnector.Capture!.IsReady) 
+        {
+            _logger.LogDebug("FaceInferenceService: GetExpressionData failed - camera is not ready (likely disconnected)");
+            return false;
+        }
 
         // Update the (256x256) image the onnx model uses
         if (platformConnector.ExtractFrameData(platformSettings.Tensor.Buffer.Span, platformSettings.InputSize, cameraSettings) != true)
@@ -128,16 +140,28 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
         image = new Mat();
 
         if (platformConnector is null)
+        {
+            _logger.LogDebug("FaceInferenceService: GetRawImage failed - platform connector is null");
             return false;
+        }
 
         if (platformConnector.Capture is null)
+        {
+            _logger.LogDebug("FaceInferenceService: GetRawImage failed - capture instance is null");
             return false;
+        }
 
         if (!platformConnector.Capture.IsReady)
+        {
+            _logger.LogDebug("FaceInferenceService: GetRawImage failed - camera is not ready (likely disconnected)");
             return false;
+        }
 
         if (platformConnector.Capture.RawMat is null)
+        {
+            _logger.LogDebug("FaceInferenceService: GetRawImage failed - RawMat is null");
             return false;
+        }
 
         if (color == (platformConnector.Capture!.RawMat.Channels() == 1 ? ColorType.Gray8 : ColorType.Bgr24))
         {

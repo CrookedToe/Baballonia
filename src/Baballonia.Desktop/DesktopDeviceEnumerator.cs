@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Baballonia.Contracts;
+using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 
 #if WINDOWS
@@ -18,42 +19,71 @@ namespace Baballonia.Desktop;
 
 public sealed class DesktopDeviceEnumerator : IDeviceEnumerator
 {
+    private readonly ILogger<DesktopDeviceEnumerator>? _logger;
+    
     public Dictionary<string, string> Cameras { get; set; } = null!;
+
+    public DesktopDeviceEnumerator()
+    {
+        _logger = null;
+    }
+
+    public DesktopDeviceEnumerator(ILogger<DesktopDeviceEnumerator> logger)
+    {
+        _logger = logger;
+    }
 
     /// <summary>
     /// Lists available cameras with friendly names as dictionary keys and device identifiers as values.
     /// </summary>
     /// <returns>Dictionary with friendly names as keys and device IDs as values</returns>
-    public async Task<Dictionary<string, string>> UpdateCameras()
+    public Task<Dictionary<string, string>> UpdateCameras()
     {
+        _logger?.LogInformation("Starting camera device enumeration");
         Dictionary<string, string> cameraDict = new Dictionary<string, string>();
 
         try
         {
+            _logger?.LogDebug("Detecting operating system for camera enumeration");
             if (OperatingSystem.IsWindows())
             {
+                _logger?.LogDebug("Running on Windows - using DirectShow and Revision camera detection");
                 AddWindowsDsCameras(cameraDict);
                 AddRevisionCamera(cameraDict);
             }
             else if (OperatingSystem.IsMacOS())
             {
+                _logger?.LogDebug("Running on macOS - using OpenCV camera detection");
                 AddOpenCvCameras(cameraDict);
             }
             else if (OperatingSystem.IsLinux())
             {
+                _logger?.LogDebug("Running on Linux - using UVC device and Revision camera detection");
                 AddLinuxUvcDevices(cameraDict);
                 AddRevisionCamera(cameraDict);
             }
+            else
+            {
+                _logger?.LogWarning("Unknown operating system detected for camera enumeration");
+            }
 
             // Add serial ports as potential camera sources
+            _logger?.LogDebug("Adding serial ports as potential camera sources");
             AddSerialPorts(cameraDict);
+            
+            _logger?.LogInformation("Camera enumeration completed. Found {CameraCount} devices", cameraDict.Count);
+            foreach (var camera in cameraDict)
+            {
+                _logger?.LogDebug("Detected camera: '{FriendlyName}' -> '{DeviceId}'", camera.Key, camera.Value);
+            }
         }
         catch (Exception ex)
         {
+            _logger?.LogError(ex, "Error during camera enumeration: {ErrorMessage}", ex.Message);
             cameraDict.Add($"Error: {ex.Message}", "error");
         }
 
-        return cameraDict;
+        return Task.FromResult(cameraDict);
     }
 
     private void AddRevisionCamera(Dictionary<string, string> cameraDict)
@@ -63,18 +93,22 @@ public sealed class DesktopDeviceEnumerator : IDeviceEnumerator
 
     private void AddOpenCvCameras(Dictionary<string, string> cameraDict)
     {
+        _logger?.LogDebug("Enumerating OpenCV cameras");
         int index = 0;
 
         while (true)
         {
+            _logger?.LogDebug("Testing camera index {Index}", index);
             var capture = new VideoCapture(index);
             if (!capture.IsOpened())
             {
+                _logger?.LogDebug("Camera index {Index} could not be opened, stopping enumeration", index);
                 break;
             }
 
             var deviceId = index.ToString();
             string friendlyName = $"Camera {deviceId}";
+            _logger?.LogDebug("Found OpenCV camera {Index}: '{FriendlyName}'", index, friendlyName);
 
             // Make sure we don't add duplicate keys
             EnsureUniqueKey(cameraDict, friendlyName, deviceId);
@@ -83,24 +117,37 @@ public sealed class DesktopDeviceEnumerator : IDeviceEnumerator
             if (OperatingSystem.IsLinux())
             {
                 string devPath = $"/dev/video{index}";
+                _logger?.LogDebug("Adding Linux video device path: '{DevPath}'", devPath);
                 EnsureUniqueKey(cameraDict, $"Video Device {index}", devPath);
             }
 
             capture.Release();
             index++;
         }
+        
+        _logger?.LogDebug("OpenCV camera enumeration completed. Found {CameraCount} cameras", index);
     }
 
     [SupportedOSPlatform("windows")]
     private void AddWindowsDsCameras(Dictionary<string, string> cameraDict)
     {
         #if WINDOWS
-        var videoInputDevices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-
-        for (var index = 0; index < videoInputDevices.Length; index++)
+        try
         {
-            var device = videoInputDevices[index];
-            cameraDict.Add(device.Name, index.ToString());
+            _logger?.LogDebug("Enumerating Windows DirectShow cameras");
+            var videoInputDevices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
+            _logger?.LogDebug("Found {DeviceCount} DirectShow video input devices", videoInputDevices.Length);
+
+            for (var index = 0; index < videoInputDevices.Length; index++)
+            {
+                var device = videoInputDevices[index];
+                _logger?.LogDebug("Adding DirectShow camera {Index}: '{DeviceName}'", index, device.Name);
+                cameraDict.Add(device.Name, index.ToString());
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error enumerating Windows DirectShow cameras");
         }
         #endif
     }

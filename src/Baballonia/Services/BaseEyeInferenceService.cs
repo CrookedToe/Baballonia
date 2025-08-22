@@ -40,9 +40,15 @@ public abstract class BaseEyeInferenceService(ILogger<InferenceService> logger, 
 
     protected bool CaptureFrame(CameraSettings cameraSettings, Mat leftEyeMat, Mat rightEyeMat)
     {
-        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady != true ||
-            PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady != true)
+        var leftReady = PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady == true;
+        var rightReady = PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady == true;
+        
+        if (!leftReady || !rightReady)
         {
+            if (!leftReady)
+                logger.LogDebug("BaseEyeInferenceService: CaptureFrame failed - Left camera is not ready (likely disconnected)");
+            if (!rightReady)
+                logger.LogDebug("BaseEyeInferenceService: CaptureFrame failed - Right camera is not ready (likely disconnected)");
             return false;
         }
 
@@ -89,9 +95,15 @@ public abstract class BaseEyeInferenceService(ILogger<InferenceService> logger, 
 
     protected bool CaptureFrame(CameraSettings leftSetting, CameraSettings rightSettings, Mat leftEyeMat, Mat rightEyeMat)
     {
-        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady != true ||
-            PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady != true)
+        var leftReady = PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady == true;
+        var rightReady = PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady == true;
+        
+        if (!leftReady || !rightReady)
         {
+            if (!leftReady)
+                logger.LogDebug("BaseEyeInferenceService: CaptureFrame (dual-settings) failed - Left camera is not ready (likely disconnected)");
+            if (!rightReady)
+                logger.LogDebug("BaseEyeInferenceService: CaptureFrame (dual-settings) failed - Right camera is not ready (likely disconnected)");
             return false;
         }
 

@@ -32,11 +32,13 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
 
     private bool _useFilter = true;
 
-    public override void SetupInference(Camera camera, string cameraAddress)
+    public override async Task SetupInference(Camera camera, string cameraAddress)
     {
-        Task.Run(async () =>
+        _logger.LogDebug("DualCameraEyeInferenceService: SetupInference called for {Camera} with address '{Address}'", camera, cameraAddress);
+        await Task.Run(async () =>
         {
             _cameraUrls[camera] = cameraAddress;
+            _logger.LogDebug("Camera URLs count: {Count}, Cameras configured: {CameraList}", _cameraUrls.Count, string.Join(", ", _cameraUrls.Keys));
 
             if (_cameraUrls.Count >= 2)
             {
@@ -45,15 +47,27 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
                     _logger.LogInformation($"Setting up DualCamera inference for camera {cameraAddress}");
                     await InitializeModel();
                 }
+                else
+                {
+                    _logger.LogDebug("Camera {Camera} is not Left camera, skipping model initialization", camera);
+                }
+            }
+            else
+            {
+                _logger.LogDebug("Not enough cameras configured yet ({Count}/2), waiting for more cameras", _cameraUrls.Count);
             }
         });
     }
 
     protected override async Task InitializeModel()
     {
+        _logger.LogDebug("Initializing {ServiceType} model and inference session", Type);
+        
+        _logger.LogDebug("Setting up ONNX session options");
         SessionOptions sessionOptions = SetupSessionOptions();
         await ConfigurePlatformSpecificGpu(sessionOptions);
 
+        _logger.LogDebug("Loading filter and model configuration from settings");
         _useFilter = await _settingsService.ReadSettingAsync<bool>("AppSettings_OneEuroMinEnabled");
         var minCutoff = await _settingsService.ReadSettingAsync<float>("AppSettings_OneEuroMinFreqCutoff");
         if (minCutoff == 0f) minCutoff = 1f;
@@ -61,41 +75,73 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
         if (speedCoeff == 0f) speedCoeff = 1f;
         var eyeModel = await _settingsService.ReadSettingAsync<string>("EyeHome_EyeModel");
 
-        if (!File.Exists(eyeModel))
+        _logger.LogDebug("Filter settings - UseFilter: {UseFilter}, MinCutoff: {MinCutoff}, SpeedCoeff: {SpeedCoeff}", 
+            _useFilter, minCutoff, speedCoeff);
+
+        // Check if the model file exists, first try as absolute path, then relative to app directory
+        var modelPath = eyeModel;
+        if (!Path.IsPathRooted(eyeModel))
         {
+            modelPath = Path.Combine(AppContext.BaseDirectory, eyeModel);
+        }
+
+        if (!File.Exists(modelPath))
+        {
+            _logger.LogDebug("Eye model file '{ModelPath}' not found, using default model", modelPath);
             const string defaultModelName = "eyeModel.onnx";
             await _settingsService.SaveSettingAsync<string>("EyeHome_EyeModel", defaultModelName);
             eyeModel = defaultModelName;
+            modelPath = Path.Combine(AppContext.BaseDirectory, eyeModel);
         }
+        
+        _logger.LogDebug("Loading ONNX model from: '{ModelPath}'", modelPath);
 
-        var session = new InferenceSession(Path.Combine(AppContext.BaseDirectory, eyeModel), sessionOptions);
-        var inputName = session.InputMetadata.Keys.First();
-        var dimensions = session.InputMetadata.Values.First().Dimensions;
-        var inputSize = new Size(dimensions[2], dimensions[3]);
-
-        // Initialize tensors and filters for both eyes
-        for (int i = 0; i < 2; i++)
+        try
         {
-            float[] noisyPoint = new float[ExpectedRawExpressions];
-            var filter = new OneEuroFilter(
-                x0: noisyPoint,
-                minCutoff: minCutoff,
-                beta: speedCoeff
-            );
+            var session = new InferenceSession(modelPath, sessionOptions);
+            var inputName = session.InputMetadata.Keys.First();
+            var dimensions = session.InputMetadata.Values.First().Dimensions;
+            var inputSize = new Size(dimensions[2], dimensions[3]);
 
-            var tensor = new DenseTensor<float>([1, 4, dimensions[2], dimensions[3]]);
-            var platformSettings = new PlatformSettings(inputSize, session, tensor, filter, 0f, inputName, eyeModel);
-            _platformConnectors[i] = (platformSettings, null)!;
+            _logger.LogDebug("ONNX model loaded successfully - Input: '{InputName}', Dimensions: [{Dim0},{Dim1},{Dim2},{Dim3}], Size: {Width}x{Height}", 
+                inputName, dimensions[0], dimensions[1], dimensions[2], dimensions[3], inputSize.Width, inputSize.Height);
+
+            // Initialize tensors and filters for both eyes
+            _logger.LogDebug("Initializing tensors and filters for dual camera setup");
+            for (int i = 0; i < 2; i++)
+            {
+                _logger.LogDebug("Creating filter and tensor for camera {CameraIndex}", i);
+                float[] noisyPoint = new float[ExpectedRawExpressions];
+                var filter = new OneEuroFilter(
+                    x0: noisyPoint,
+                    minCutoff: minCutoff,
+                    beta: speedCoeff
+                );
+
+                var tensor = new DenseTensor<float>([1, 4, dimensions[2], dimensions[3]]);
+                var platformSettings = new PlatformSettings(inputSize, session, tensor, filter, 0f, inputName, eyeModel);
+                _platformConnectors[i] = (platformSettings, null)!;
+                _logger.LogDebug("Platform settings configured for camera {CameraIndex}", i);
+            }
+
+            _combinedDimensions = [1, 8, dimensions[2], dimensions[3]]; // 2 eyes * 4 frames
+            _combinedTensor = new DenseTensor<float>(_combinedDimensions);
+            _logger.LogDebug("Combined tensor created with dimensions: [{Dim0},{Dim1},{Dim2},{Dim3}]", 
+                _combinedDimensions[0], _combinedDimensions[1], _combinedDimensions[2], _combinedDimensions[3]);
+
+            // Configure platform connectors for both cameras
+            _logger.LogDebug("Configuring platform connectors for dual cameras");
+            await ConfigurePlatformConnectors(Camera.Left, _cameraUrls[Camera.Left]);
+            await ConfigurePlatformConnectors(Camera.Right, _cameraUrls[Camera.Right]);
+
+            _logger.LogInformation($"{Type} inference service initialized with separate cameras");
+            _logger.LogDebug("DualCameraEyeInferenceService: InitializeModel completed successfully");
         }
-
-        _combinedDimensions = [1, 8, dimensions[2], dimensions[3]]; // 2 eyes * 4 frames
-        _combinedTensor = new DenseTensor<float>(_combinedDimensions);
-
-        // Configure platform connectors for both cameras
-        ConfigurePlatformConnectors(Camera.Left, _cameraUrls[Camera.Left]);
-        ConfigurePlatformConnectors(Camera.Right, _cameraUrls[Camera.Right]);
-
-        _logger.LogInformation($"{Type} inference service initialized with separate cameras");
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize {ServiceType} model from '{ModelPath}'", Type, modelPath);
+            throw;
+        }
     }
 
     public override bool GetExpressionData(CameraSettings cameraSettings, out float[] arKitExpressions)

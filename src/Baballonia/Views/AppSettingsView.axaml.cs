@@ -17,6 +17,7 @@ public partial class AppSettingsView : UserControl
     private readonly IMainService _mainService;
     private readonly ComboBox _themeComboBox;
     private readonly ComboBox _langComboBox;
+    private readonly ComboBox _logLevelComboBox;
     private readonly ComboBox _selectedMinFreqCutoffComboBox;
     private readonly ComboBox _selectedSpeedCutoffComboxBox;
     private readonly NumericUpDown _selectedMinFreqCutoffUpDown;
@@ -33,6 +34,9 @@ public partial class AppSettingsView : UserControl
         _languageSelectorService = Ioc.Default.GetService<ILanguageSelectorService>()!;
         _langComboBox = this.Find<ComboBox>("LangCombo")!;
         _langComboBox.SelectionChanged += LangComboBox_SelectionChanged;
+
+        _logLevelComboBox = this.Find<ComboBox>("LogLevelCombo")!;
+        _logLevelComboBox.SelectionChanged += LogLevelComboBox_SelectionChanged;
 
         _selectedMinFreqCutoffComboBox = this.Find<ComboBox>("SelectedMinFreqCutoffComboBox")!;
         _selectedSpeedCutoffComboxBox = this.Find<ComboBox>("SelectedSpeedCutoffComboBox")!;
@@ -105,6 +109,12 @@ public partial class AppSettingsView : UserControl
         {
             await _languageSelectorService.SetLanguageAsync(item!.Name!);
         });
+    }
+
+    private void LogLevelComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        // The log level setting is automatically saved through the ViewModel binding
+        // No additional action needed here since the LogFileLogger reads from settings
     }
 
     // Workaround for https://github.com/AvaloniaUI/Avalonia/issues/4460

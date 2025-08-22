@@ -64,6 +64,7 @@ public class App : Application
                 services.AddLogging(logging =>
                 {
                     logging.ClearProviders();
+                    logging.SetMinimumLevel(LogLevel.Debug);
                     logging.AddDebug();
                     logging.AddConsole();
                     logging.AddProvider(new OutputLogProvider(Dispatcher.UIThread));
@@ -127,7 +128,7 @@ public class App : Application
 
                 // Configuration
                 IConfiguration config = new ConfigurationBuilder()
-                    .AddJsonFile(LocalSettingsService.DefaultLocalSettingsFile)
+                    .AddJsonFile(LocalSettingsService.DefaultLocalSettingsFile, optional: true)
                     .Build();
                 services.Configure<LocalSettingsOptions>(config);
             });
@@ -166,10 +167,49 @@ public class App : Application
         _host = hostBuilder.Build();
         Ioc.Default.ConfigureServices(_host.Services);
 
+        if (Utils.IsSupportedDesktopOS && DeviceEnumerator != null && DeviceEnumerator.GetType().Name == "DesktopDeviceEnumerator")
+        {
+            // Use reflection to create DesktopDeviceEnumerator with logger since we can't reference Baballonia.Desktop here
+            var deviceEnumeratorType = DeviceEnumerator.GetType();
+            var loggerType = typeof(ILogger<>).MakeGenericType(deviceEnumeratorType);
+            var deviceLogger = Ioc.Default.GetService(loggerType);
+            
+            var appLogger = Ioc.Default.GetService<ILogger<App>>();
+            appLogger?.LogInformation("Attempting to reinitialize DeviceEnumerator with logger. Logger found: {LoggerFound}", deviceLogger != null);
+            
+            if (deviceLogger != null)
+            {
+                DeviceEnumerator = (IDeviceEnumerator)Activator.CreateInstance(deviceEnumeratorType, deviceLogger)!;
+                appLogger?.LogInformation("DeviceEnumerator successfully reinitialized with logger");
+            }
+            else
+            {
+                appLogger?.LogWarning("Could not find logger for DeviceEnumerator type: {TypeName}", deviceEnumeratorType.FullName);
+            }
+        }
+
         Assembly assembly = Assembly.GetExecutingAssembly();
         Version version = assembly.GetName().Version!;
         var logger = Ioc.Default.GetService<ILogger<MainWindow>>();
         logger!.LogInformation($"Baballonia version {version} starting...");
+
+        // Test DeviceEnumerator logger injection by triggering camera enumeration
+        if (DeviceEnumerator != null)
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    logger.LogInformation("Testing DeviceEnumerator camera enumeration...");
+                    var cameras = await DeviceEnumerator.UpdateCameras();
+                    logger.LogInformation("DeviceEnumerator test completed. Found {CameraCount} cameras", cameras.Count);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error testing DeviceEnumerator: {ErrorMessage}", ex.Message);
+                }
+            });
+        }
 
         Task.Run(async () => await _host.StartAsync());
 

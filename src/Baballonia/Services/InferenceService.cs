@@ -20,7 +20,7 @@ public abstract class InferenceService(ILogger<InferenceService> logger, ILocalS
     /// <summary>
     /// Loads/reloads the ONNX model for a specified camera
     /// </summary>
-    public abstract void SetupInference(Camera camera, string cameraAddress);
+    public abstract Task SetupInference(Camera camera, string cameraAddress);
 
     /// <summary>
     /// Poll expression data, frames
@@ -74,18 +74,43 @@ public abstract class InferenceService(ILogger<InferenceService> logger, ILocalS
     /// We have a custom implementations for IP Cameras, the de-facto use case on mobile
     /// As well as SerialCameras (not tested on mobile yet)
     /// </summary>
-    public void ConfigurePlatformConnectors(Camera camera, string cameraIndex)
+    public async Task ConfigurePlatformConnectors(Camera camera, string cameraIndex)
     {
-        var platformConnector = Activator.CreateInstance(App.PlatformConnectorType, cameraIndex, logger, settingsService)!;
-        if (camera == Camera.Face)
+        logger.LogDebug("Configuring platform connector for {Camera} camera with index '{CameraIndex}'", camera, cameraIndex);
+        logger.LogDebug("Platform connector type: {ConnectorType}", App.PlatformConnectorType.Name);
+        
+        try
         {
-            PlatformConnectors[0].Item2 = (PlatformConnector)platformConnector;
-            PlatformConnectors[0].Item2.Initialize(cameraIndex);
+            logger.LogDebug("Creating platform connector instance of type {ConnectorType} with parameters: url='{CameraIndex}', logger, settingsService", App.PlatformConnectorType.Name, cameraIndex);
+            var platformConnector = Activator.CreateInstance(App.PlatformConnectorType, cameraIndex, logger, settingsService)!;
+            logger.LogDebug("Successfully created platform connector instance: {ConnectorInstance}", platformConnector.GetType().Name);
+            
+            if (camera == Camera.Face)
+            {
+                logger.LogDebug("Assigning Face camera connector to PlatformConnectors[0]");
+                PlatformConnectors[0].Item2 = (PlatformConnector)platformConnector;
+                logger.LogDebug("Initializing Face camera connector with index '{CameraIndex}'", cameraIndex);
+                await PlatformConnectors[0].Item2.Initialize(cameraIndex);
+                logger.LogDebug("Face camera connector initialization completed");
+            }
+            else
+            {
+                var connectorIndex = (int)camera;
+                logger.LogDebug("Assigning {Camera} camera connector to PlatformConnectors[{Index}]", camera, connectorIndex);
+                PlatformConnectors[connectorIndex].Item2 = (PlatformConnector)platformConnector;
+                logger.LogDebug("Initializing {Camera} camera connector with index '{CameraIndex}'", camera, cameraIndex);
+                await PlatformConnectors[connectorIndex].Item2.Initialize(cameraIndex);
+                logger.LogDebug("{Camera} camera connector initialization completed", camera);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            PlatformConnectors[(int)camera].Item2 = (PlatformConnector)platformConnector;
-            PlatformConnectors[(int)camera].Item2.Initialize(cameraIndex);
+            logger.LogError(ex, "Failed to configure platform connector for {Camera} camera with index '{CameraIndex}'. Exception type: {ExceptionType}, Message: {ExceptionMessage}", camera, cameraIndex, ex.GetType().Name, ex.Message);
+            if (ex.InnerException != null)
+            {
+                logger.LogError("Inner exception: {InnerExceptionType}: {InnerExceptionMessage}", ex.InnerException.GetType().Name, ex.InnerException.Message);
+            }
+            throw;
         }
     }
 

@@ -8,6 +8,7 @@ using Baballonia.Views;
 using System;
 using Baballonia.Helpers;
 using Velopack;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Baballonia.Desktop;
 

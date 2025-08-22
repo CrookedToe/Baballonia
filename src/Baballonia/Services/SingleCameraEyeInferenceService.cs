@@ -34,9 +34,10 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
 
     private bool _useFilter = true;
 
-    public override void SetupInference(Camera camera, string cameraAddress)
+    public override async Task SetupInference(Camera camera, string cameraAddress)
     {
-        Task.Run(async () =>
+        _logger.LogDebug("SingleCameraEyeInferenceService: SetupInference called for {Camera} with address '{Address}'", camera, cameraAddress);
+        await Task.Run(async () =>
         {
             _logger.LogInformation($"Setting up {Type} inference with camera at {cameraAddress}");
 
@@ -45,19 +46,36 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
             _cameraUrls[Camera.Right] = cameraAddress;
             _cameraAddress = cameraAddress;
 
+            _logger.LogDebug("Camera URLs count: {Count}, Both eyes configured with address: '{Address}'", _cameraUrls.Count, cameraAddress);
+
             // If we already have both cameras set up, no need to reinitialize
             if (_cameraUrls.Count < 2)
+            {
+                _logger.LogDebug("Not enough cameras configured yet ({Count}/2), waiting for more cameras", _cameraUrls.Count);
                 return;
+            }
 
             if (camera == Camera.Left)
+            {
+                _logger.LogDebug("Camera {Camera} is Left camera, proceeding with model initialization", camera);
                 await InitializeModel();
+            }
+            else
+            {
+                _logger.LogDebug("Camera {Camera} is not Left camera, skipping model initialization", camera);
+            }
         });
     }
 
     protected override async Task InitializeModel()
     {
+        _logger.LogDebug("Initializing {ServiceType} model and inference session", Type);
+        
+        _logger.LogDebug("Setting up ONNX session options");
         SessionOptions sessionOptions = SetupSessionOptions();
         await ConfigurePlatformSpecificGpu(sessionOptions);
+
+        _logger.LogDebug("Loading filter and model configuration from settings");
 
         _useFilter = await _settingsService.ReadSettingAsync<bool>("AppSettings_OneEuroMinEnabled");
         var minCutoff = await _settingsService.ReadSettingAsync<float>("AppSettings_OneEuroMinFreqCutoff");
@@ -66,14 +84,25 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
         if (speedCoeff == 0f) speedCoeff = 1f;
         var eyeModel = await _settingsService.ReadSettingAsync<string>("EyeHome_EyeModel");
 
-        if (!File.Exists(eyeModel))
+        // Check if the model file exists, first try as absolute path, then relative to app directory
+        var modelPath = eyeModel;
+        if (!Path.IsPathRooted(eyeModel))
         {
+            modelPath = Path.Combine(AppContext.BaseDirectory, eyeModel);
+        }
+
+        if (!File.Exists(modelPath))
+        {
+            _logger.LogDebug("Eye model file '{ModelPath}' not found, using default model", modelPath);
             const string defaultModelName = "eyeModel.onnx";
             await _settingsService.SaveSettingAsync<string>("EyeHome_EyeModel", defaultModelName);
             eyeModel = defaultModelName;
+            modelPath = Path.Combine(AppContext.BaseDirectory, eyeModel);
         }
+        
+        _logger.LogDebug("Loading ONNX model from: '{ModelPath}'", modelPath);
 
-        var session = new InferenceSession(Path.Combine(AppContext.BaseDirectory, eyeModel), sessionOptions);
+        var session = new InferenceSession(modelPath, sessionOptions);
         var inputName = session.InputMetadata.Keys.First();
         var dimensions = session.InputMetadata.Values.First().Dimensions;
         var inputSize = new Size(dimensions[2], dimensions[3]);
@@ -97,12 +126,13 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
         _combinedTensor = new DenseTensor<float>(_combinedDimensions);
 
         // Configure platform connector for the single camera
-        ConfigurePlatformConnectors(Camera.Left, _cameraAddress);
+        await ConfigurePlatformConnectors(Camera.Left, _cameraAddress);
 
         // For single camera, we'll use the same connector for both eyes
         _platformConnectors[(int)Camera.Right] = _platformConnectors[(int)Camera.Left];
 
         _logger.LogInformation($"{Type} inference service initialized with single camera");
+        _logger.LogDebug("SingleCameraEyeInferenceService: InitializeModel completed successfully");
     }
 
     public override bool GetExpressionData(CameraSettings leftCamera, CameraSettings rightCamera, out float[] arKitExpressions)

@@ -18,9 +18,27 @@ public class LogFileProvider : ILoggerProvider
             if (!Directory.Exists(Utils.UserAccessibleDataDirectory)) // Eat my ass windows
                 Directory.CreateDirectory(Utils.UserAccessibleDataDirectory);
 
-            var logPath = Path.Combine(Utils.UserAccessibleDataDirectory, "latest.log");
+            // Rotate log files: latest.log -> old.log -> older.log
+            var latestLogPath = Path.Combine(Utils.UserAccessibleDataDirectory, "latest.log");
+            var oldLogPath = Path.Combine(Utils.UserAccessibleDataDirectory, "old.log");
+            var olderLogPath = Path.Combine(Utils.UserAccessibleDataDirectory, "older.log");
 
-            var file = new FileStream(logPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, 4096,
+            if (File.Exists(olderLogPath))
+            {
+                File.Delete(olderLogPath);
+            }
+
+            if (File.Exists(oldLogPath))
+            {
+                File.Move(oldLogPath, olderLogPath);
+            }
+
+            if (File.Exists(latestLogPath))
+            {
+                File.Move(latestLogPath, oldLogPath);
+            }
+
+            var file = new FileStream(latestLogPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, 4096,
                 FileOptions.WriteThrough);
             _writer = new StreamWriter(file);
         }
@@ -43,5 +61,9 @@ public class LogFileProvider : ILoggerProvider
         return NullLogger.Instance;
     }
 
-    public void Dispose() => _loggers.Clear();
+    public void Dispose()
+    {
+        _loggers.Clear();
+        _writer?.Dispose();
+    }
 }

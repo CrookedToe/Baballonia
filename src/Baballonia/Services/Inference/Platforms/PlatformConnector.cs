@@ -48,7 +48,7 @@ public abstract class PlatformConnector
     /// <summary>
     /// Initializes a Platform Connector
     /// </summary>
-    public virtual void Initialize(string url)
+    public virtual async Task Initialize(string url)
     {
         if (string.IsNullOrEmpty(url)) return;
 
@@ -56,25 +56,63 @@ public abstract class PlatformConnector
 
         try
         {
+            Logger.LogDebug("PlatformConnector.Initialize called with url: '{Url}'", url);
+            Logger.LogDebug("Available captures count: {CaptureCount}", Captures?.Count ?? 0);
+            
+            if (Captures == null)
+            {
+                Logger.LogError("Captures dictionary is null - platform connector not properly initialized");
+                throw new InvalidOperationException("Captures dictionary is null");
+            }
+
+            bool foundMatchingCapture = false;
             foreach (var capture in Captures)
             {
-                if (capture.Key.Any(regex => regex.IsMatch(url)))
+                Logger.LogDebug("Checking capture type {CaptureTypeName} with {PatternCount} regex patterns", capture.Value.Name, capture.Key.Count);
+                
+                if (capture.Key.Any(regex => {
+                    var matches = regex.IsMatch(url);
+                    Logger.LogDebug("  Regex pattern matches '{Url}': {Matches}", url, matches);
+                    return matches;
+                }))
                 {
-                    Capture = (Capture)Activator.CreateInstance(capture.Value, url)!;
-                    Logger.LogInformation($"Changed capture source to {capture.Value.Name} with url {url}.");
+                    foundMatchingCapture = true;
+                    Logger.LogDebug("Found matching capture type: {CaptureTypeName}", capture.Value.Name);
+                    
+                        Logger.LogDebug("Attempting to create {CaptureTypeName} with logger support", capture.Value.Name);
+                        Capture = (Capture)Activator.CreateInstance(capture.Value, url, Logger)!;
+                        Logger.LogDebug("Successfully created {CaptureTypeName} with logger", capture.Value.Name);
+                    
+                    Logger.LogInformation("Changed capture source to {CaptureTypeName} with url {Url}.", capture.Value.Name, url);
                     break;
                 }
             }
 
+            if (!foundMatchingCapture)
+            {
+                Logger.LogError("No matching capture type found for URL: '{Url}'", url);
+                Logger.LogDebug("Available capture types and their patterns:");
+                foreach (var capture in Captures)
+                {
+                    Logger.LogDebug("  {CaptureTypeName}: {PatternCount} patterns", capture.Value.Name, capture.Key.Count);
+                }
+                return; // Don't throw, just return without a capture
+            }
+
             if (Capture is not null)
             {
-                Capture.StartCapture();
-                Logger.LogInformation($"Starting {Capture.GetType().Name} capture source...");
+                Logger.LogInformation("Starting {CaptureTypeName} capture source...", Capture.GetType().Name);
+                var startResult = await Capture.StartCapture();
+                Logger.LogInformation("{CaptureTypeName} capture start result: {StartResult}", Capture.GetType().Name, startResult);
+            }
+            else
+            {
+                Logger.LogError("Capture instance is null after creation attempt");
             }
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            Logger.LogError(e, "Exception in PlatformConnector.Initialize: {ExceptionType}: {ExceptionMessage}", e.GetType().Name, e.Message);
             throw;
         }
     }
@@ -86,10 +124,16 @@ public abstract class PlatformConnector
     public unsafe bool ExtractFrameData(Span<float> floatArray, Size size, CameraSettings settings)
     {
         // Check if capture is ready and has valid data
-        if (Capture?.IsReady != true || Capture.RawMat == null || Capture.RawMat.DataPointer == null ||
+        if (Capture?.IsReady != true)
+        {
+            Logger.LogDebug("PlatformConnector: ExtractFrameData failed - capture is not ready (camera likely disconnected)");
+            return false;
+        }
+        
+        if (Capture.RawMat == null || Capture.RawMat.DataPointer == null ||
             Capture.RawMat.Width <= 0 || Capture.RawMat.Height <= 0)
         {
-            Logger.LogWarning("Invalid or empty frame detected; skipping frame processing.");
+            Logger.LogWarning("PlatformConnector: Invalid or empty frame detected; skipping frame processing (camera may be disconnected)");
             return false;
         }
 

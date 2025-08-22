@@ -166,13 +166,13 @@ public class CameraController : IDisposable
         return CropManager.CropZone.GetRect();
     }
 
-    public void StartCamera(string cameraAddress)
+    public async Task StartCamera(string cameraAddress)
     {
         if (!string.IsNullOrEmpty(cameraAddress))
         {
             StopCamera();
         }
-        _inferenceService.SetupInference(_camera, cameraAddress);
+        await _inferenceService.SetupInference(_camera, cameraAddress);
     }
 
     public void StopCamera()
