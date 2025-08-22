@@ -8,8 +8,8 @@
         <ApplicationIcon>Assets\IconOpaque_32x32.ico</ApplicationIcon>
         <Company>Paradigm Reality Enhancement Labs</Company>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <AssemblyVersion>1.0.0.6</AssemblyVersion>
-        <FileVersion>1.0.0.6</FileVersion>
+        <AssemblyVersion></AssemblyVersion>
+        <FileVersion></FileVersion>
     </PropertyGroup>
 
     <PropertyGroup>

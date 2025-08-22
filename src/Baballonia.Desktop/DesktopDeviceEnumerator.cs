@@ -94,6 +94,7 @@ public sealed class DesktopDeviceEnumerator : IDeviceEnumerator
     [SupportedOSPlatform("windows")]
     private void AddWindowsDsCameras(Dictionary<string, string> cameraDict)
     {
+        #if WINDOWS
         var videoInputDevices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
 
         for (var index = 0; index < videoInputDevices.Length; index++)
@@ -101,6 +102,7 @@ public sealed class DesktopDeviceEnumerator : IDeviceEnumerator
             var device = videoInputDevices[index];
             cameraDict.Add(device.Name, index.ToString());
         }
+        #endif
     }
 
     [SupportedOSPlatform("linux")]

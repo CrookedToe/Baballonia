@@ -11,13 +11,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Baballonia.Helpers;
 using Baballonia.Services;
 using CommunityToolkit.Mvvm.Input;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Baballonia.ViewModels.SplitViewPane;
 
-public partial class CalibrationViewModel : ViewModelBase
+public partial class CalibrationViewModel : ViewModelBase, IDisposable
 {
     public ObservableCollection<SliderBindableSetting> GazeSettings { get; set; }
     public ObservableCollection<SliderBindableSetting> EyeSettings { get; set; }
@@ -29,11 +30,17 @@ public partial class CalibrationViewModel : ViewModelBase
 
     private ILocalSettingsService _settingsService { get; }
     private readonly ICalibrationService _calibrationService;
+    private readonly ParameterSenderService _parameterSenderService;
+    private readonly ProcessingLoopService _processingLoopService;
 
+    private readonly Dictionary<string, int> _eyeKeyIndexMap;
+    private readonly Dictionary<string, int> _faceKeyIndexMap;
     public CalibrationViewModel()
     {
         _settingsService = Ioc.Default.GetService<ILocalSettingsService>()!;
         _calibrationService = Ioc.Default.GetService<ICalibrationService>()!;
+        _parameterSenderService = Ioc.Default.GetService<ParameterSenderService>()!;
+        _processingLoopService = Ioc.Default.GetService<ProcessingLoopService>()!;
 
         GazeSettings =
         [
@@ -119,7 +126,21 @@ public partial class CalibrationViewModel : ViewModelBase
         {
             setting.PropertyChanged += OnSettingChanged;
         }
-        // _settingsService.Load(this);
+
+        // Convert dictionary order into index mapping
+        _eyeKeyIndexMap = new Dictionary<string, int>()
+        {
+            { "LeftEyeX", 0 },
+            { "LeftEyeY", 1 },
+            { "RightEyeX", 2 },
+            { "RightEyeY", 3 },
+            { "LeftEyeLid", 4 },
+            { "RightEyeLid", 5 }
+        };
+
+        _faceKeyIndexMap = _parameterSenderService.FaceExpressionMap.Keys
+            .Select((key, index) => new { key, index })
+            .ToDictionary(x => x.key, x => x.index);
 
         PropertyChanged += async (o, p) =>
         {
@@ -132,7 +153,28 @@ public partial class CalibrationViewModel : ViewModelBase
             }
         };
 
+        _processingLoopService.ExpressionUpdateEvent += ExpressionUpdateHandler;
+
         LoadInitialSettings();
+    }
+
+    private void ExpressionUpdateHandler(ProcessingLoopService.Expressions expressions)
+    {
+        if(expressions.FaceExpression != null)
+            Dispatcher.UIThread.Post(() =>
+            {
+                ApplyCurrentFaceExpressionValues(expressions.FaceExpression, CheekSettings);
+                ApplyCurrentFaceExpressionValues(expressions.FaceExpression, MouthSettings);
+                ApplyCurrentFaceExpressionValues(expressions.FaceExpression, JawSettings);
+                ApplyCurrentFaceExpressionValues(expressions.FaceExpression, NoseSettings);
+                ApplyCurrentFaceExpressionValues(expressions.FaceExpression, TongueSettings);
+            });
+        if(expressions.EyeExpression != null)
+            Dispatcher.UIThread.Post(() =>
+            {
+                ApplyCurrentEyeExpressionValues(expressions.EyeExpression, GazeSettings);
+                ApplyCurrentEyeExpressionValues(expressions.EyeExpression, EyeSettings);
+            });
     }
     private void OnSettingChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -150,6 +192,40 @@ public partial class CalibrationViewModel : ViewModelBase
                 await _calibrationService.SetExpression(setting.Name + "Upper", setting.Upper);
             }
         });
+    }
+
+    private void ApplyCurrentEyeExpressionValues(float[] values, IEnumerable<SliderBindableSetting> settings)
+    {
+        foreach (var setting in settings)
+        {
+            if (_eyeKeyIndexMap.TryGetValue(setting.Name, out var index)
+                && index < values.Length)
+            {
+                var weight = values[index];
+                var val = Math.Clamp(
+                    weight.Remap(setting.Lower, setting.Upper, setting.Min, setting.Max),
+                    setting.Min,
+                    setting.Max);
+                setting.CurrentExpression = val;
+            }
+        }
+    }
+
+    private void ApplyCurrentFaceExpressionValues(float[] values, IEnumerable<SliderBindableSetting> settings)
+    {
+        foreach (var setting in settings)
+        {
+            if (_faceKeyIndexMap.TryGetValue(setting.Name, out var index)
+                && index < values.Length)
+            {
+                var weight = values[index];
+                var val = Math.Clamp(
+                    weight.Remap(setting.Lower, setting.Upper, setting.Min, setting.Max),
+                    setting.Min,
+                    setting.Max);
+                setting.CurrentExpression = val;
+            }
+        }
     }
 
     [RelayCommand]
@@ -175,6 +251,7 @@ public partial class CalibrationViewModel : ViewModelBase
     private void LoadInitialSettings()
     {
         LoadInitialSettings(GazeSettings);
+        LoadInitialSettings(EyeSettings);
         LoadInitialSettings(CheekSettings);
         LoadInitialSettings(JawSettings);
         LoadInitialSettings(MouthSettings);
@@ -192,5 +269,10 @@ public partial class CalibrationViewModel : ViewModelBase
             setting.Min = val.Min;
             setting.Max = val.Max;
         }
+    }
+
+    public void Dispose()
+    {
+        _processingLoopService.ExpressionUpdateEvent -= ExpressionUpdateHandler;
     }
 }

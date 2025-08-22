@@ -1,315 +1,332 @@
 <UserControl
-    x:Class="Baballonia.Views.CalibrationView"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="clr-namespace:Baballonia.Models"
-    xmlns:splitViewPane="clr-namespace:Baballonia.ViewModels.SplitViewPane"
-    xmlns:twoRangeSlider="https://github.com/DmitryNizhebovsky/Avalonia.RangeSlider"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    x:DataType="splitViewPane:CalibrationViewModel"
-    mc:Ignorable="d">
+  x:Class="Baballonia.Views.CalibrationView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:splitViewPane="clr-namespace:Baballonia.ViewModels.SplitViewPane"
+  xmlns:models="clr-namespace:Baballonia.Models"
+  xmlns:twoRangeSlider="clr-namespace:Baballonia.Controls"
+  d:DesignHeight="450"
+  d:DesignWidth="800"
+  x:DataType="splitViewPane:CalibrationViewModel"
+  mc:Ignorable="d">
 
-    <ScrollViewer>
-        <StackPanel Classes="Page">
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBlock
-                    Grid.Column="0"
-                    Classes="Header"
-                    Text="Calibration" />
-                <StackPanel
-                    x:Name="ResetDesktopStackPanel"
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    IsVisible="False"
-                    Orientation="Horizontal"
-                    Spacing="12">
-                    <Button Command="{Binding ResetMinimumsCommand}" Content="Reset Minimums" />
-                    <Button Command="{Binding ResetMaximumsCommand}" Content="Reset Maximums" />
-                </StackPanel>
-            </Grid>
-
-            <TextBlock TextWrapping="Wrap">
-                <Run>The below sliders are used to calibrate the</Run> <Run FontStyle="Italic">sensitivity</Run>
-                <Run>of your face expressions.</Run><LineBreak />
-                <Run>• Raising the</Run> <Run FontWeight="SemiBold">Minimum</Run>
-                <Run>value requires a stronger expression before it starts to show.</Run><LineBreak />
-                <Run>• Lowering the</Run> <Run FontWeight="SemiBold">Maximum</Run>
-                <Run>value means a smaller expression will reach 100% faster.</Run>
-            </TextBlock>
-
-            <StackPanel
-                x:Name="ResetMobileStackPanel"
-                Orientation="Vertical"
-                Spacing="12">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <Button Command="{Binding ResetMinimumsCommand}" Content="Reset Minimums" />
-                    <Button Command="{Binding ResetMaximumsCommand}" Content="Reset Maximums" />
-                </StackPanel>
-            </StackPanel>
-
-
-            <!--  Gaze Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Gaze Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding GazeSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="-1"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
-            <!--  Eye Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Eye Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding EyeSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="0"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
-            <!--  Cheek Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Cheek Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding CheekSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="0"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
-            <!--  Jaw Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Jaw Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding JawSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="0"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
-            <!--  Nose Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Nose Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding NoseSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="0"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
-            <!--  Mouth Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Mouth Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding MouthSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="0"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
-            <!--  Tongue Expressions Expander  -->
-            <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
-                <Expander.Header>
-                    <TextBlock FontWeight="SemiBold" Text="Tongue Expressions" />
-                </Expander.Header>
-                <StackPanel Margin="0,5">
-                    <ItemsControl ItemsSource="{Binding TongueSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SliderBindableSetting">
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="16"
-                                    Background="{DynamicResource SystemChromeMediumLowColor}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <StackPanel>
-                                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
-                                                <Run FontWeight="SemiBold" Text="{Binding Name}" />
-                                                <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
-                                                <Run Text="-" />
-                                                <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
-                                            </TextBlock>
-                                            <twoRangeSlider:RangeSlider
-                                                LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
-                                                Maximum="1"
-                                                Minimum="0"
-                                                TickFrequency="0.01"
-                                                UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Expander>
-
+  <ScrollViewer>
+    <StackPanel Classes="Page">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock
+          Grid.Column="0"
+          Classes="Header"
+          Text="Calibration" />
+        <StackPanel
+          x:Name="ResetDesktopStackPanel"
+          Grid.Column="1"
+          HorizontalAlignment="Right"
+          IsVisible="False"
+          Orientation="Horizontal"
+          Spacing="12">
+          <Button Command="{Binding ResetMinimumsCommand}" Content="Reset Minimums" />
+          <Button Command="{Binding ResetMaximumsCommand}" Content="Reset Maximums" />
         </StackPanel>
-    </ScrollViewer>
+      </Grid>
+
+      <TextBlock TextWrapping="Wrap">
+        <Run>The below sliders are used to calibrate the</Run> <Run FontStyle="Italic">sensitivity</Run>
+        <Run>of your face expressions.</Run><LineBreak />
+        <Run>• Raising the</Run> <Run FontWeight="SemiBold">Minimum</Run>
+        <Run>value requires a stronger expression before it starts to show.</Run><LineBreak />
+        <Run>• Lowering the</Run> <Run FontWeight="SemiBold">Maximum</Run>
+        <Run>value means a smaller expression will reach 100% faster.</Run>
+      </TextBlock>
+
+      <StackPanel
+        x:Name="ResetMobileStackPanel"
+        Orientation="Vertical"
+        Spacing="12">
+        <TextBlock
+          VerticalAlignment="Center"
+          FontStyle="Italic"
+          Text="(Reload page to see changes)" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button Command="{Binding ResetMinimumsCommand}" Content="Reset Minimums" />
+          <Button Command="{Binding ResetMaximumsCommand}" Content="Reset Maximums" />
+        </StackPanel>
+      </StackPanel>
+
+      <!--  Gaze Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Gaze Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding GazeSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name}" />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="-1"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Eye Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Eye Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding EyeSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name} " />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="0"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Cheek Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Cheek Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding CheekSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name}" />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="0"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Jaw Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Jaw Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding JawSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name} " />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="0"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Nose Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Nose Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding NoseSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name} " />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="0"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Mouth Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Mouth Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding MouthSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name} " />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="0"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Tongue Expressions Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Tongue Expressions" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+          <ItemsControl ItemsSource="{Binding TongueSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name} " />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="0"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>

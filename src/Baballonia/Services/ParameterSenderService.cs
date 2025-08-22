@@ -19,7 +19,7 @@ public class ParameterSenderService(
     private readonly Queue<OscMessage> _sendQueue = new();
 
     // Expression parameter names
-    private readonly Dictionary<string, string> _eyeExpressionMap = new()
+    public readonly Dictionary<string, string> EyeExpressionMap = new()
     {
         { "LeftEyeX", "/LeftEyeX" },
         { "LeftEyeY", "/LeftEyeY" },
@@ -29,7 +29,7 @@ public class ParameterSenderService(
         { "RightEyeLid", "/RightEyeLid" },
     };
 
-    private readonly Dictionary<string, string> _faceExpressionMap = new()
+    public readonly Dictionary<string, string> FaceExpressionMap = new()
     {
         { "CheekPuffLeft", "/cheekPuffLeft" },
         { "CheekPuffRight", "/cheekPuffRight" },
@@ -103,15 +103,15 @@ public class ParameterSenderService(
         if (expressions is null) return;
         if (expressions.Length == 0) return;
 
-        for (int i = 0; i < Math.Min(expressions.Length, _eyeExpressionMap.Count); i++)
+        for (int i = 0; i < Math.Min(expressions.Length, EyeExpressionMap.Count); i++)
         {
             var weight = expressions[i];
-            var eyeElement = _eyeExpressionMap.ElementAt(i);
+            var eyeElement = EyeExpressionMap.ElementAt(i);
             var settings = calibrationService.GetExpressionSettings(eyeElement.Key);
 
             var msg = new OscMessage(prefix + eyeElement.Value,
                 Math.Clamp(
-                    weight.Remap(settings.Min, settings.Max, settings.Lower, settings.Upper),
+                    weight.Remap(settings.Lower, settings.Upper, settings.Min, settings.Max),
                     settings.Min,
                     settings.Max));
             _sendQueue.Enqueue(msg);
@@ -123,15 +123,15 @@ public class ParameterSenderService(
         if (expressions == null) return;
         if (expressions.Length == 0) return;
 
-        for (int i = 0; i < Math.Min(expressions.Length, _faceExpressionMap.Count); i++)
+        for (int i = 0; i < Math.Min(expressions.Length, FaceExpressionMap.Count); i++)
         {
             var weight = expressions[i];
-            var faceElement = _faceExpressionMap.ElementAt(i);
+            var faceElement = FaceExpressionMap.ElementAt(i);
             var settings = calibrationService.GetExpressionSettings(faceElement.Key);
 
             var msg = new OscMessage(prefix + faceElement.Value,
                 Math.Clamp(
-                    weight.Remap(settings.Min, settings.Max, settings.Lower, settings.Upper),
+                    weight.Remap(settings.Lower, settings.Upper, settings.Min, settings.Max),
                     settings.Min,
                     settings.Max));
             _sendQueue.Enqueue(msg);

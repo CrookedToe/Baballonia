@@ -1,28 +1,23 @@
 <Window
-    ExtendClientAreaTitleBarHeightHint="-1"
-    ExtendClientAreaToDecorationsHint="True"
-    Height="825"
-    Icon="/Assets/WindowIcon.ico"
-    MinHeight="250"
-    MinWidth="675"
-    SystemDecorations="Full"
-    Title="Project Babble"
-    Width="1100"
-    WindowStartupLocation="CenterScreen"
-    d:DesignHeight="825"
-    d:DesignWidth="1100"
-    mc:Ignorable="d"
     x:Class="Baballonia.Views.MainWindow"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:Baballonia.Views"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
-    <Window.Resources>
-        <x:String x:Key="PaneCloseRegular">PaneCloseRegular</x:String>
-        <x:String x:Key="SquareEmpty">SquareEmpty</x:String>
-    </Window.Resources>
+    Width="1100"
+    Height="825"
+    MinWidth="675"
+    MinHeight="250"
+    d:DesignHeight="825"
+    d:DesignWidth="1100"
+    x:DataType="views:MainWindow"
+    ExtendClientAreaTitleBarHeightHint="-1"
+    ExtendClientAreaToDecorationsHint="True"
+    Icon="/Assets/WindowIcon.ico"
+    SystemDecorations="Full"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
 
     <Window.Styles>
         <Style Selector="Border.TitleBar">
@@ -37,33 +32,33 @@
         </Grid.RowDefinitions>
 
         <Border
-            Classes="TitleBar"
+            x:Name="ApplicationTitleBar"
             Grid.Row="0"
             Height="40"
+            Classes="TitleBar"
             IsHitTestVisible="False"
-            IsVisible="False"
-            x:Name="ApplicationTitleBar">
+            IsVisible="False">
             <Grid>
                 <StackPanel
+                    x:Name="TitleBarContent"
+                    Margin="10,0,0,0"
                     HorizontalAlignment="Left"
                     IsHitTestVisible="False"
-                    Margin="10,0,0,0"
-                    Orientation="Horizontal"
-                    x:Name="TitleBarContent">
+                    Orientation="Horizontal">
                     <Image
-                        MaxHeight="24"
-                        MaxWidth="24"
-                        MinHeight="24"
                         MinWidth="24"
-                        Source="/Assets/IconOpaque_32x32.png"
-                        VerticalAlignment="Center" />
+                        MinHeight="24"
+                        MaxWidth="24"
+                        MaxHeight="24"
+                        VerticalAlignment="Center"
+                        Source="/Assets/IconOpaque_32x32.png" />
                     <TextBlock
-                        FontSize="12"
-                        HorizontalAlignment="Left"
-                        IsHitTestVisible="False"
+                        x:Name="AppNameAndVersion"
                         Margin="10,0,0,0"
-                        Text="Project Babble"
-                        VerticalAlignment="Center" />
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        IsHitTestVisible="False" />
                 </StackPanel>
             </Grid>
         </Border>

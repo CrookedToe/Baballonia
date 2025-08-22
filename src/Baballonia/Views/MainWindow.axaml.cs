@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Baballonia.ViewModels;
@@ -15,6 +16,7 @@ public partial class MainWindow : Window
         DataContext = vm;
         InitializeComponent();
         AdjustTitleBarForPlatform();
+        AppNameAndVersion.Text = $"Project Babble v{Assembly.GetExecutingAssembly().GetName().Version}";
     }
 
     private void AdjustTitleBarForPlatform()

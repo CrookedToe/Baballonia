@@ -11,7 +11,7 @@ namespace Baballonia;
 
 public static class Utils
 {
-    public static readonly bool IsSupportedDesktopOS = OperatingSystem.IsWindows() || OperatingSystem.IsLinux();
+    public static readonly bool IsSupportedDesktopOS = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() || OperatingSystem.IsLinux();
 
     public const int MobileWidth = 900;
 

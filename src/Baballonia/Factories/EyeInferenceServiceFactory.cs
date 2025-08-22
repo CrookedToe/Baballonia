@@ -9,8 +9,10 @@ namespace Baballonia.Services
 {
     public static class EyeInferenceServiceFactory
     {
-        public static IInferenceService Create(IServiceProvider serviceProvider, Dictionary<Camera, string> cameraUrls, CameraSettings leftCameraSettings, CameraSettings rightCameraSettings)
+        public static IInferenceService Create(IServiceProvider serviceProvider, Dictionary<Camera, string>? cameraUrls, CameraSettings leftCameraSettings, CameraSettings rightCameraSettings)
         {
+            if (cameraUrls == null) return serviceProvider.GetRequiredService<IDualCameraEyeInferenceService>();
+
             var leftCameraUrl = cameraUrls.GetValueOrDefault(Camera.Left);
             var rightCameraUrl = cameraUrls.GetValueOrDefault(Camera.Right);
 

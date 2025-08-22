@@ -84,6 +84,7 @@ public class App : Application
 
                 services.AddSingleton<IActivationService, ActivationService>();
                 services.AddSingleton<IDispatcherService, DispatcherService>();
+                services.AddSingleton<ProcessingLoopService>();
 
                 // Core Services
                 services.AddTransient<IIdentityService, IdentityService>();
@@ -94,6 +95,7 @@ public class App : Application
                 services.AddTransient<OscQueryServiceWrapper>();
                 services.AddSingleton<ParameterSenderService>();
                 services.AddTransient<GithubService>();
+                services.AddTransient<ICommandSenderFactory, CommandSenderFactory>();
                 services.AddTransient<FirmwareService>();
                 services.AddSingleton<IMainService, MainStandalone>();
                 services.AddSingleton<ICalibrationService, CalibrationService>();
@@ -130,15 +132,21 @@ public class App : Application
                 services.Configure<LocalSettingsOptions>(config);
             });
 
-        if (!File.Exists(LocalSettingsService.DefaultLocalSettingsFile))
+        if (Utils.IsSupportedDesktopOS)
         {
-            // Create the file if it doesn't exist and write empty JSON "{}"
-            // TODO Write defaults
-            var path = Path.Combine(AppContext.BaseDirectory, LocalSettingsService.DefaultLocalSettingsFile);
-            File.WriteAllText(path, "{}");
+            var settingsLocation = Path.Combine(
+                Utils.PersistentDataDirectory,
+                LocalSettingsService.DefaultApplicationDataFolder,
+                LocalSettingsService.DefaultLocalSettingsFile);
+            if (!File.Exists(settingsLocation))
+            {
+                // Create the settings file if it doesn't exist and copy the default settings file
+                var defaultSettings = Path.Combine(AppContext.BaseDirectory, LocalSettingsService.DefaultLocalSettingsFile);
+                Directory.CreateDirectory(Path.GetDirectoryName(settingsLocation)!);
+                File.Copy(defaultSettings, settingsLocation);
+            }
         }
-
-        if (!Utils.IsSupportedDesktopOS) // extract default models for mobile
+        else // extract default models for mobile
         {
             string[] models = ["eyeModel.onnx", "faceModel.onnx"];
             foreach (var model in models)

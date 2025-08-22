@@ -112,7 +112,8 @@ public partial class HomePageView : UserControl
     {
         if (DataContext is not HomePageViewModel vm) return;
 
-        if (vm.LeftCamera.DisplayAddress != null && vm.RightCamera.DisplayAddress != null)
+        if (!string.IsNullOrEmpty(vm.LeftCamera.DisplayAddress) &&
+            !string.IsNullOrEmpty(vm.RightCamera.DisplayAddress))
         {
             if (vm.LeftCamera.DisplayAddress.Length == 0)
             {

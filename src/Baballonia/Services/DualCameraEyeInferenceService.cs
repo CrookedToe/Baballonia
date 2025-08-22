@@ -36,17 +36,16 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
     {
         Task.Run(async () =>
         {
-            _logger.LogInformation($"Setting up {Type} inference for {camera} camera at {cameraAddress}");
-
-            // Store the camera URL
             _cameraUrls[camera] = cameraAddress;
 
-            // If we already have both cameras set up, no need to reinitialize
-            if (_cameraUrls.Count < 2)
-                return;
-
-            if (camera == Camera.Left)
-                await InitializeModel();
+            if (_cameraUrls.Count >= 2)
+            {
+                if (camera == Camera.Left)
+                {
+                    _logger.LogInformation($"Setting up DualCamera inference for camera {cameraAddress}");
+                    await InitializeModel();
+                }
+            }
         });
     }
 

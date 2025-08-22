@@ -57,11 +57,25 @@ public partial class MainViewModel : ViewModelBase
 
         var vm = Design.IsDesignMode
             ? Activator.CreateInstance(value.ModelType)
-            : Ioc.Default.GetService(value.ModelType);
+            : CreateInstance(value.ModelType); // Manual creation
 
         if (vm is not ViewModelBase vmb) return;
 
+        var tmp = CurrentPage;
         CurrentPage = vmb;
+
+        if (tmp is IDisposable disposable)
+            disposable.Dispose();
+    }
+    private object CreateInstance(Type type)
+    {
+        // Manually resolve dependencies without container tracking
+        var constructors = type.GetConstructors();
+        var constructor = constructors.First();
+        var parameters = constructor.GetParameters()
+            .Select(p => Ioc.Default.GetService(p.ParameterType))
+            .ToArray();
+        return Activator.CreateInstance(type, parameters);
     }
 
     public ObservableCollection<ListItemTemplate> Items { get; }

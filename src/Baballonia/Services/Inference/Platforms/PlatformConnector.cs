@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Baballonia.Contracts;
+using Baballonia.Helpers;
 using Baballonia.Services.Inference.Models;
 using Microsoft.Extensions.Logging;
 using OpenCvSharp;
@@ -151,11 +152,20 @@ public abstract class PlatformConnector
             resultMat = newMat;
         }
 
-        // Adjust brightness and type conversion
+        // If needed, convert float Mats to Byte mats and normallize
         if (resultMat.Type() != outputMat.Type())
         {
             var newMat = new Mat();
             resultMat.ConvertTo(newMat, outputMat.Type(), 1f / 255f);
+            resultMat.Dispose();
+            resultMat = newMat;
+        }
+
+        // Adjust brightness
+        if (settings.Gamma is < 0.48f or > 0.52f)
+        {
+            var newMat = new Mat();
+            resultMat.ConvertTo(newMat, outputMat.Type(), settings.Gamma.Remap(0f, 1f, 0.5f, 2f));
             resultMat.Dispose();
             resultMat = newMat;
         }

@@ -32,16 +32,6 @@ public class LocalSettingsService : ILocalSettingsService
         var applicationDataFolder =
             Path.Combine(_localApplicationData, opt.ApplicationDataFolder ?? DefaultApplicationDataFolder);
         _localSettingsFile = opt.LocalSettingsFile ?? Path.Combine(applicationDataFolder, DefaultLocalSettingsFile);
-        if (!File.Exists(_localSettingsFile))
-        {
-            Directory.CreateDirectory(_localApplicationData);
-            Directory.CreateDirectory(applicationDataFolder);
-            File.Create(_localSettingsFile).Close();
-        }
-
-        // Make mobile config path
-        if (!Utils.IsSupportedDesktopOS)
-            Directory.CreateDirectory(applicationDataFolder);
 
         debouncedSave = new DebounceFunction(async () =>
         {
@@ -50,6 +40,7 @@ public class LocalSettingsService : ILocalSettingsService
                 WriteIndented = true
             });
             // Despite what the docs say, the below does not in fact create a new file if it does not exist
+            // However, we can safely assume this file will always exist (created by App.axaml.cs)
             await File.WriteAllTextAsync(_localSettingsFile, json);
             logger.LogInformation("Saving settings");
         }, 2000);

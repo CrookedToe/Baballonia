@@ -215,9 +215,11 @@
                         <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="8">
                             <StackPanel>
 
-                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0">
+                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <StackPanel>
                                         <TextBlock
+                                            Grid.Row="0"
+                                            Grid.Column="0"
                                             FontSize="14"
                                             FontWeight="Medium"
                                             Text="Vertical Flip" />
@@ -258,6 +260,24 @@
                                         Maximum="6.28"
                                         Minimum="0"
                                         Value="{Binding LeftCamera.Rotation}" />
+
+                                    <StackPanel Grid.Row="4" Grid.Column="0">
+                                        <TextBlock
+                                            FontSize="14"
+                                            FontWeight="Medium"
+                                            Text="Image Brightness" />
+                                        <TextBlock FontSize="12" Text="Adjust the brightness of the image" />
+                                    </StackPanel>
+                                    <Slider
+                                        x:Name="LeftGammaSlider"
+                                        Grid.Row="5"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="3"
+                                        IsSnapToTickEnabled="True"
+                                        Maximum="1"
+                                        Minimum="0"
+                                        TickFrequency="0.1"
+                                        Value="{Binding LeftCamera.Gamma}" />
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -426,7 +446,7 @@
                         <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="8">
                             <StackPanel>
 
-                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                                     <StackPanel Grid.Row="0" Grid.Column="0">
                                         <TextBlock
                                             FontSize="14"
@@ -469,6 +489,24 @@
                                         Maximum="6.28"
                                         Minimum="0"
                                         Value="{Binding RightCamera.Rotation}" />
+
+                                    <StackPanel Grid.Row="4" Grid.Column="0">
+                                        <TextBlock
+                                            FontSize="14"
+                                            FontWeight="Medium"
+                                            Text="Image Brightness" />
+                                        <TextBlock FontSize="12" Text="Adjust the brightness of the image" />
+                                    </StackPanel>
+                                    <Slider
+                                        x:Name="RightGammaSlider"
+                                        Grid.Row="5"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="3"
+                                        IsSnapToTickEnabled="True"
+                                        Maximum="1"
+                                        Minimum="0"
+                                        TickFrequency="0.1"
+                                        Value="{Binding RightCamera.Gamma}" />
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -633,7 +671,7 @@
                         <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="8">
                             <StackPanel>
 
-                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                                     <StackPanel Grid.Row="0" Grid.Column="0">
                                         <TextBlock
                                             FontSize="14"
@@ -676,6 +714,24 @@
                                         Maximum="6.28"
                                         Minimum="0"
                                         Value="{Binding FaceCamera.Rotation}" />
+
+                                    <StackPanel Grid.Row="4" Grid.Column="0">
+                                        <TextBlock
+                                            FontSize="14"
+                                            FontWeight="Medium"
+                                            Text="Image Brightness" />
+                                        <TextBlock FontSize="12" Text="Adjust the brightness of the image" />
+                                    </StackPanel>
+                                    <Slider
+                                        x:Name="FaceGammaSlider"
+                                        Grid.Row="5"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="3"
+                                        IsSnapToTickEnabled="True"
+                                        Maximum="1"
+                                        Minimum="0"
+                                        TickFrequency="0.1"
+                                        Value="{Binding FaceCamera.Gamma}" />
                                 </Grid>
                             </StackPanel>
                         </Border>

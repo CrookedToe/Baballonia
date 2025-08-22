@@ -28,6 +28,7 @@ public class CameraController : IDisposable
 {
     public CameraSettings CameraSettings { get; set; }
 
+    // TODO: move this somewhere else and not static
     public static float[] EyeExpressions { get; private set; } = [];
     public static float[] FaceExpressions { get; private set; } = [];
 
@@ -63,7 +64,7 @@ public class CameraController : IDisposable
         _mjpegStreamingService = new MjpegStreamingService();
     }
 
-    public async Task<WriteableBitmap?> UpdateImage(CameraSettings leftSettings, CameraSettings rightSettings, CameraSettings faceSettings)
+    public async Task<WriteableBitmap?> UpdateImage(CameraSettings leftSettings, CameraSettings rightSettings, CameraSettings faceSettings, bool isDualCamera)
     {
         bool valid;
         bool useColor;
@@ -78,12 +79,17 @@ public class CameraController : IDisposable
                 valid = _inferenceService.GetImage(CameraSettings, out image);
                 if (valid) // Don't run infer on raw images
                 {
-                    CameraSize = (image.Width, image.Height);
+                    CameraSize = (image!.Width, image.Height);
                     float[] output;
                     if (_camera == Camera.Face)
                     {
                         _inferenceService.GetExpressionData(faceSettings, out output);
                         FaceExpressions = output;
+                    }
+                    else if (isDualCamera)
+                    {
+                        _inferenceService.GetExpressionData(leftSettings, out output);
+                        EyeExpressions = output;
                     }
                     else
                     {

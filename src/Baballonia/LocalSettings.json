@@ -1,0 +1,369 @@
+{
+  "OSCInPort": 8889,
+  "OSCOutPort": 8888,
+  "OSCAddress": "127.0.0.1",
+  "LeftCamera": {
+    "Camera": 0,
+    "Roi": {
+      "X": 0,
+      "Y": 0,
+      "Width": 256,
+      "Height": 256
+    },
+    "RotationRadians": 0,
+    "Gamma": 0.5,
+    "UseRedChannel": false,
+    "UseHorizontalFlip": false,
+    "UseVerticalFlip": false
+  },
+  "RightCamera": {
+    "Camera": 1,
+    "Roi": {
+      "X": 0,
+      "Y": 0,
+      "Width": 256,
+      "Height": 256
+    },
+    "RotationRadians": 0,
+    "Gamma": 0.5,
+    "UseRedChannel": false,
+    "UseHorizontalFlip": false,
+    "UseVerticalFlip": false
+  },
+  "FaceCamera": {
+    "Camera": 2,
+    "Roi": {
+      "X": 0,
+      "Y": 0,
+      "Width": 256,
+      "Height": 256
+    },
+    "RotationRadians": 0,
+    "Gamma": 0.5,
+    "UseRedChannel": false,
+    "UseHorizontalFlip": false,
+    "UseVerticalFlip": false
+  },
+  "LastOpenedLeftCamera": "",
+  "LastOpenedRightCamera": "",
+  "EyeHome_EyeModel": "eyeModel.onnx",
+  "CalibrationParams": {
+    "TongueBendDown": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "RightEyeY": {
+      "Lower": -1,
+      "Upper": 1,
+      "Min": -1,
+      "Max": 1
+    },
+    "MouthDimpleLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueUp": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthRollUpper": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthSmileLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueTwistRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueDown": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthPucker": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueFlat": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueCurlUp": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthFunnel": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "NoseSneerRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthFrownRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "CheekSuckLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthUpperUpLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueSquish": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthDimpleRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthSmileRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "JawLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "CheekPuffLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "LeftEyeLid": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "NoseSneerLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueOut": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "RightEyeLid": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueTwistLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthStretchRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "JawRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "LeftEyeY": {
+      "Lower": -1,
+      "Upper": 1,
+      "Min": -1,
+      "Max": 1
+    },
+    "MouthPressRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueRoll": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthPressLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthShrugUpper": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "RightEyeX": {
+      "Lower": -1,
+      "Upper": 1,
+      "Min": -1,
+      "Max": 1
+    },
+    "JawOpen": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "CheekSuckRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthLowerDownRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "LeftEyeX": {
+      "Lower": -1,
+      "Upper": 1,
+      "Min": -1,
+      "Max": 1
+    },
+    "JawForward": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthClose": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "TongueLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "CheekPuffRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthRollLower": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthUpperUpRight": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthLowerDownLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthStretchLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthFrownLeft": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    },
+    "MouthShrugLower": {
+      "Lower": 0,
+      "Upper": 1,
+      "Min": 0,
+      "Max": 1
+    }
+  },
+  "LastOpenedFaceCamera": "",
+  "AppBackgroundRequestedLanguage": "DefaultLanguage",
+  "AppBackgroundRequestedTheme": "Dark",
+  "AppSettings_RecalibrateAddress": "/avatar/parameters/etvr_recenter",
+  "AppSettings_UseOSCQuery": false,
+  "AppSettings_OSCPrefix": "",
+  "AppSettings_OneEuroMinEnabled": true,
+  "AppSettings_OneEuroMinFreqCutoff": 1,
+  "AppSettings_OneEuroSpeedCutoff": 1,
+  "AppSettings_UseGPU": true,
+  "AppSettings_CheckForUpdates": false
+}
