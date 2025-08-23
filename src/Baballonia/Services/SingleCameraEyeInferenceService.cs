@@ -109,11 +109,6 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
     {
         arKitExpressions = null!;
 
-        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady != true)
-        {
-            return false;
-        }
-
         // For single camera, we'll split the frame vertically for left/right eyes
         using var frame = new Mat<byte>(
             PlatformConnectors[(int)Camera.Left].Item1.InputSize.Height,
@@ -239,9 +234,6 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
         var platformConnector = PlatformConnectors[(int)Camera.Left].Item2;
         image = new Mat();
 
-        if (platformConnector?.Capture?.RawMat == null || !platformConnector.Capture.IsReady)
-            return false;
-
         if (color == (platformConnector.Capture.RawMat.Channels() == 1 ? ColorType.Gray8 : ColorType.Bgr24))
         {
             image = platformConnector.Capture.RawMat;
@@ -281,7 +273,7 @@ public class SingleCameraEyeInferenceService(ILogger<InferenceService> logger, I
 
         var imageMat = new Mat<byte>(platformSettings.InputSize.Height, platformSettings.InputSize.Width);
 
-        if (platformConnector.TransformRawImage(imageMat, cameraSettings) != true)
+        if (platformConnector.TransformRawImage(imageMat, cameraSettings))
         {
             imageMat.Dispose();
             return false;

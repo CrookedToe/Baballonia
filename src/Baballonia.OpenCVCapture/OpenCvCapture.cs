@@ -7,7 +7,7 @@ namespace Baballonia.OpenCVCapture;
 /// <summary>
 /// Wrapper class for OpenCV
 /// </summary>
-public sealed partial class OpenCvCapture(string url) : Capture(url)
+public sealed partial class OpenCvCapture(string source) : Capture(source)
 {
     // Numbers only, http or GStreamer pipeline
     [GeneratedRegex(@"^\d+$|^https?://.*|^/dev/video\d+$|\s+!\s*appsink$|\.local$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
@@ -50,14 +50,13 @@ public sealed partial class OpenCvCapture(string url) : Capture(url)
         {
             try
             {
-                if (int.TryParse(Url, out var index))
+                if (int.TryParse(Source, out var index))
                     _videoCapture = await Task.Run(() => VideoCapture.FromCamera(index, PreferredBackend), cts.Token);
                 else
-                    _videoCapture = await Task.Run(() => new VideoCapture(Url), cts.Token);
+                    _videoCapture = await Task.Run(() => new VideoCapture(Source), cts.Token);
             }
             catch (Exception)
             {
-                IsReady = false;
                 return false;
             }
         }
@@ -65,12 +64,11 @@ public sealed partial class OpenCvCapture(string url) : Capture(url)
         // Handle edge case cameras like the Varjo Aero that send frames in YUV
         // This won't activate the IR illuminators, but it's a good idea to standardize inputs
         _videoCapture.ConvertRgb = true;
-        IsReady = _videoCapture.IsOpened();
 
         CancellationToken token = _updateTaskCts.Token;
         _updateTask = Task.Run(() => VideoCapture_UpdateLoop(_videoCapture, token));
 
-        return IsReady;
+        return _videoCapture.IsOpened();
     }
 
     private Task VideoCapture_UpdateLoop(VideoCapture capture, CancellationToken ct)
@@ -79,8 +77,8 @@ public sealed partial class OpenCvCapture(string url) : Capture(url)
         {
             try
             {
-                IsReady = capture.Read(RawMat);
-                Task.Delay(20, ct).Wait(ct);
+                capture.Read(RawMat);
+                // Task.Delay(20, ct).Wait(ct);
             }
             catch (Exception)
             {
@@ -101,7 +99,6 @@ public sealed partial class OpenCvCapture(string url) : Capture(url)
             _updateTask.Wait();
         }
 
-        IsReady = false;
         if (_videoCapture != null)
         {
             _videoCapture.Release();

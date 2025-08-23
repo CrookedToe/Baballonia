@@ -418,5 +418,14 @@ public partial class HomePageViewModel : ViewModelBase, IDisposable
         _msgCounterTimer.Stop();
 
         _processingLoopService.BitmapUpdateEvent -= BitmapUpdateHandler;
+
+        /*Dispatcher.UIThread.Post(() =>
+        {
+            // a hack to force the UI refresh
+            LeftCamera.Bitmap = null!;
+            RightCamera.Bitmap = null!;
+            FaceCamera.Bitmap = null!;
+        });*/
+
     }
 }

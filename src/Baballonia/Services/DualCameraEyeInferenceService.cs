@@ -102,13 +102,6 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
     {
         arKitExpressions = null!;
 
-        // For dual camera, we only process when we have both camera feeds
-        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady != true ||
-            PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady != true)
-        {
-            return false;
-        }
-
         using var leftEyeMat = new Mat<byte>(
             PlatformConnectors[(int)Camera.Left].Item1.InputSize.Height,
             PlatformConnectors[(int)Camera.Left].Item1.InputSize.Width);
@@ -205,9 +198,6 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
         var index = (int)cameraSettings.Camera;
         var platformConnector = PlatformConnectors[index].Item2;
         image = new Mat();
-
-        if (platformConnector?.Capture?.RawMat == null || !platformConnector.Capture.IsReady)
-            return false;
 
         if (color == (platformConnector.Capture.RawMat.Channels() == 1 ? ColorType.Gray8 : ColorType.Bgr24))
         {

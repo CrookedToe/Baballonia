@@ -18,7 +18,7 @@ public partial class VftCapture : Capture
     private VideoCapture? _videoCapture;
     private readonly Mat _orignalMat = new();
 
-    public VftCapture(string url) : base(url) { }
+    public VftCapture(string source) : base(source) { }
 
     private bool _loop;
 
@@ -38,7 +38,7 @@ public partial class VftCapture : Capture
                 // Initialize VideoCapture with URL, timeout for robustness
                 // Set capture mode to YUYV
                 // Prevent automatic conversion to RGB
-                _videoCapture = await Task.Run(() => new VideoCapture(Url, VideoCaptureAPIs.V4L2), cts.Token);
+                _videoCapture = await Task.Run(() => new VideoCapture(Source, VideoCaptureAPIs.V4L2), cts.Token);
                 _videoCapture.Set(VideoCaptureProperties.Mode, 3);
                 _videoCapture.Set(VideoCaptureProperties.ConvertRgb, 0);
 
@@ -47,13 +47,11 @@ public partial class VftCapture : Capture
             }
             catch (Exception)
             {
-                IsReady = false;
-                return IsReady;
+                return false;
             }
         }
 
-        IsReady = _videoCapture!.IsOpened();
-        return IsReady;
+        return  _videoCapture!.IsOpened();
     }
 
     private Task VideoCapture_UpdateLoop()
@@ -67,8 +65,8 @@ public partial class VftCapture : Capture
         {
             try
             {
-                IsReady = _videoCapture?.Read(_orignalMat) == true;
-                if (IsReady)
+                var isReady = _videoCapture?.Read(_orignalMat) == true; // bool?, this is neccesary
+                if (isReady)
                 {
                     Mat yuvConvert = Mat.FromPixelData(400, 400, MatType.CV_8UC2, _orignalMat.Data);
                     yuvConvert = yuvConvert.CvtColor(ColorConversionCodes.YUV2GRAY_Y422, 0);
@@ -91,7 +89,7 @@ public partial class VftCapture : Capture
     private void SetTrackerState(bool setActive)
     {
         // Prev: var fd = ViveFacialTracker.open(Url, ViveFacialTracker.FileOpenFlags.O_RDWR);
-        var vftFileStream = File.Open(Url, FileMode.Open, FileAccess.ReadWrite);
+        var vftFileStream = File.Open(Source, FileMode.Open, FileAccess.ReadWrite);
         var fd = vftFileStream.SafeFileHandle.DangerousGetHandle();
         if (fd != IntPtr.Zero)
         {
@@ -122,7 +120,6 @@ public partial class VftCapture : Capture
             return Task.FromResult(false);
 
         _loop = false;
-        IsReady = false;
         _videoCapture.Release();
         _videoCapture.Dispose();
         _videoCapture = null;

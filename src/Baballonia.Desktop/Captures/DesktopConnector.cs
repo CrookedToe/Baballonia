@@ -17,7 +17,7 @@ namespace Baballonia.Desktop.Captures;
 /// Base class for camera capture and frame processing
 /// Use OpenCV's IP capture class here!
 /// </summary>
-public class DesktopConnector : PlatformConnector, IPlatformConnector
+public class DesktopConnector : PlatformConnector
 {
     public DesktopConnector(string url, ILogger logger, ILocalSettingsService settingsService) : base(url, logger, settingsService)
     {

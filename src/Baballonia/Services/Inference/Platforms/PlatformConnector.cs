@@ -15,35 +15,18 @@ namespace Baballonia.Services.Inference.Platforms;
 /// <summary>
 /// Manages what Captures are allowed to run on what platforms, as well as their Urls, etc.
 /// </summary>
-public abstract class PlatformConnector
+public abstract class PlatformConnector(string url, ILogger logger, ILocalSettingsService localSettingsService) : IPlatformConnector
 {
-    protected ILogger Logger { get; }
-    protected ILocalSettingsService LocalSettingsService { get; }
+    protected ILogger Logger { get; } = logger;
+    protected ILocalSettingsService LocalSettingsService { get; } = localSettingsService;
+
+    public Dictionary<HashSet<Regex>, Type> Captures { get; set; }
+    public Capture? Capture { get; set; }
 
     /// <summary>
     /// The path to where the "data" lies
     /// </summary>
-    public string Url { get; private set; }
-
-    /// <summary>
-    /// A Platform may have many Capture sources, but only one may ever be active at a time.
-    /// This represents the current (and a valid) Capture source for this Platform
-    /// </summary>
-    public Capture? Capture { get; private set; }
-
-    /// <summary>
-    /// Dynamic collection of Capture types, their identifying strings as well as prefix/suffix controls
-    /// Add (or remove) from this collection to support platform specific connectors at runtime
-    /// Or support weird hardware setups
-    /// </summary>
-    public Dictionary<HashSet<Regex>, Type> Captures;
-
-    public PlatformConnector(string url, ILogger logger, ILocalSettingsService localSettingsService)
-    {
-        Url = url;
-        Logger = logger;
-        LocalSettingsService = localSettingsService;
-    }
+    public string Url { get; private set; } = url;
 
     /// <summary>
     /// Initializes a Platform Connector
@@ -86,7 +69,7 @@ public abstract class PlatformConnector
     public unsafe bool ExtractFrameData(Span<float> floatArray, Size size, CameraSettings settings)
     {
         // Check if capture is ready and has valid data
-        if (Capture?.IsReady != true || Capture.RawMat == null || Capture.RawMat.DataPointer == null ||
+        if (Capture.RawMat == null || Capture.RawMat.DataPointer == null ||
             Capture.RawMat.Width <= 0 || Capture.RawMat.Height <= 0)
         {
             Logger.LogWarning("Invalid or empty frame detected; skipping frame processing.");
@@ -107,7 +90,7 @@ public abstract class PlatformConnector
 
     public unsafe bool TransformRawImage(Mat outputMat, CameraSettings settings)
     {
-        if (Capture?.RawMat == null || !Capture.IsReady)
+        if (Capture?.RawMat == null)
             return false;
 
         if (Capture.RawMat.DataPointer == null ||
@@ -212,7 +195,6 @@ public abstract class PlatformConnector
         resultMat.Dispose();
         return true;
     }
-
 
     /// <summary>
     /// Shuts down the current Capture source

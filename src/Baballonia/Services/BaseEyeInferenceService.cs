@@ -40,12 +40,6 @@ public abstract class BaseEyeInferenceService(ILogger<InferenceService> logger, 
 
     protected bool CaptureFrame(CameraSettings cameraSettings, Mat leftEyeMat, Mat rightEyeMat)
     {
-        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady != true ||
-            PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady != true)
-        {
-            return false;
-        }
-
         // Process left eye
         var platformConnectorLeft = PlatformConnectors[(int)Camera.Left].Item2;
         platformConnectorLeft.TransformRawImage(leftEyeMat, cameraSettings);
@@ -89,12 +83,6 @@ public abstract class BaseEyeInferenceService(ILogger<InferenceService> logger, 
 
     protected bool CaptureFrame(CameraSettings leftSetting, CameraSettings rightSettings, Mat leftEyeMat, Mat rightEyeMat)
     {
-        if (PlatformConnectors[(int)Camera.Left].Item2?.Capture?.IsReady != true ||
-            PlatformConnectors[(int)Camera.Right].Item2?.Capture?.IsReady != true)
-        {
-            return false;
-        }
-
         // Process left eye
         var platformConnectorLeft = PlatformConnectors[(int)Camera.Left].Item2;
         platformConnectorLeft.TransformRawImage(leftEyeMat, leftSetting);

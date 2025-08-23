@@ -83,9 +83,6 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
         if (platformConnector is null) return false;
         if (platformConnector.Capture is null) return false;
 
-        // Test if the camera is not ready or connecting to new source
-        if (!platformConnector.Capture!.IsReady) return false;
-
         // Update the (256x256) image the onnx model uses
         if (platformConnector.ExtractFrameData(platformSettings.Tensor.Buffer.Span, platformSettings.InputSize, cameraSettings) != true)
             return false;
@@ -131,9 +128,6 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
             return false;
 
         if (platformConnector.Capture is null)
-            return false;
-
-        if (!platformConnector.Capture.IsReady)
             return false;
 
         if (platformConnector.Capture.RawMat is null)

@@ -38,15 +38,14 @@ public sealed class SerialCameraCapture(string portName) : Capture(portName), ID
         try
         {
             _serialPort.Open();
-            IsReady = true;
             DataLoop();
         }
         catch (Exception)
         {
-            IsReady = false;
+            Task.FromResult(false);
         }
 
-        return Task.FromResult(IsReady);
+        return Task.FromResult(true);
     }
 
     private async void DataLoop()
@@ -96,7 +95,6 @@ public sealed class SerialCameraCapture(string portName) : Capture(portName), ID
         try
         {
             _serialPort.Close();
-            IsReady = false;
             return Task.FromResult(true);
         }
         catch (Exception)
