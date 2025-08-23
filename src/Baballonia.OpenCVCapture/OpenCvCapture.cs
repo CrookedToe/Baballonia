@@ -115,33 +115,7 @@ public sealed partial class OpenCvCapture : Capture
         
         if (IsReady)
         {
-            var width = _videoCapture.Get(VideoCaptureProperties.FrameWidth);
-            var height = _videoCapture.Get(VideoCaptureProperties.FrameHeight);
-            var fps = _videoCapture.Get(VideoCaptureProperties.Fps);
-            var fourcc = _videoCapture.Get(VideoCaptureProperties.FourCC);
-            var bufferSize = _videoCapture.Get(VideoCaptureProperties.BufferSize);
-            var brightness = _videoCapture.Get(VideoCaptureProperties.Brightness);
-            var contrast = _videoCapture.Get(VideoCaptureProperties.Contrast);
-            var saturation = _videoCapture.Get(VideoCaptureProperties.Saturation);
-            var gain = _videoCapture.Get(VideoCaptureProperties.Gain);
-            var exposure = _videoCapture.Get(VideoCaptureProperties.Exposure);
-            var autoExposure = _videoCapture.Get(VideoCaptureProperties.AutoExposure);
-            
-            LogDebug("=== CAMERA INITIALIZATION COMPLETE ===");
-            LogDebug("Camera Source: " + Url);
-            LogDebug("Backend: " + PreferredBackend);
-            LogDebug("Resolution: " + width + "x" + height);
-            LogDebug("Frame Rate: " + fps + " FPS");
-            LogDebug("FourCC Code: " + fourcc + " (hex: " + ((int)fourcc).ToString("X8") + ")");
-            LogDebug("Buffer Size: " + bufferSize);
-            LogDebug("Brightness: " + brightness);
-            LogDebug("Contrast: " + contrast);
-            LogDebug("Saturation: " + saturation);
-            LogDebug("Gain: " + gain);
-            LogDebug("Exposure: " + exposure);
-            LogDebug("Auto Exposure: " + autoExposure);
-            LogDebug("Convert RGB: " + _videoCapture.ConvertRgb);
-            LogDebug("============================================");
+            LogCameraProperties();
             
             CancellationToken token = _updateTaskCts.Token;
             LogDebug("Starting video capture update loop");
@@ -164,6 +138,61 @@ public sealed partial class OpenCvCapture : Capture
     private void LogError(Exception ex, string message)
     {
         _logger?.LogError(ex, message);
+    }
+
+    /// <summary>
+    /// Safely logs all camera properties with comprehensive error handling
+    /// </summary>
+    private void LogCameraProperties()
+    {
+        if (_videoCapture == null || !_videoCapture.IsOpened())
+        {
+            LogWarning("Cannot log camera properties: VideoCapture is null or not opened");
+            return;
+        }
+
+        try
+        {
+            LogDebug("=== CAMERA INITIALIZATION COMPLETE ===");
+            LogDebug("Camera Source: " + Url);
+            LogDebug("Backend: " + PreferredBackend);
+
+            // Get all properties safely
+            var width = _videoCapture.Get(VideoCaptureProperties.FrameWidth);
+            var height = _videoCapture.Get(VideoCaptureProperties.FrameHeight);
+            var fps = _videoCapture.Get(VideoCaptureProperties.Fps);
+            var fourcc = _videoCapture.Get(VideoCaptureProperties.FourCC);
+            var bufferSize = _videoCapture.Get(VideoCaptureProperties.BufferSize);
+            var brightness = _videoCapture.Get(VideoCaptureProperties.Brightness);
+            var contrast = _videoCapture.Get(VideoCaptureProperties.Contrast);
+            var saturation = _videoCapture.Get(VideoCaptureProperties.Saturation);
+            var gain = _videoCapture.Get(VideoCaptureProperties.Gain);
+            var exposure = _videoCapture.Get(VideoCaptureProperties.Exposure);
+            var autoExposure = _videoCapture.Get(VideoCaptureProperties.AutoExposure);
+
+            // Log all properties
+            LogDebug("Resolution: " + (width >= 0 ? width.ToString() : "Unknown") + "x" + (height >= 0 ? height.ToString() : "Unknown"));
+            LogDebug("Frame Rate: " + (fps >= 0 ? fps + " FPS" : "Unknown"));
+            LogDebug("FourCC Code: " + (fourcc >= 0 ? fourcc + " (hex: " + ((int)fourcc).ToString("X8") + ")" : "Unknown"));
+            LogDebug("Buffer Size: " + (bufferSize >= 0 ? bufferSize.ToString() : "Unknown"));
+            LogDebug("Brightness: " + (brightness >= 0 ? brightness.ToString() : "Unknown"));
+            LogDebug("Contrast: " + (contrast >= 0 ? contrast.ToString() : "Unknown"));
+            LogDebug("Saturation: " + (saturation >= 0 ? saturation.ToString() : "Unknown"));
+            LogDebug("Gain: " + (gain >= 0 ? gain.ToString() : "Unknown"));
+            LogDebug("Exposure: " + (exposure >= 0 ? exposure.ToString() : "Unknown"));
+            LogDebug("Auto Exposure: " + (autoExposure >= 0 ? autoExposure.ToString() : "Unknown"));
+            LogDebug("Convert RGB: " + _videoCapture.ConvertRgb);
+            LogDebug("============================================");
+        }
+        catch (Exception ex)
+        {
+            LogError(ex, "Failed to retrieve camera properties for logging. This may indicate camera hardware or driver issues.");
+            LogDebug("=== CAMERA INITIALIZATION COMPLETE (Limited Info) ===");
+            LogDebug("Camera Source: " + Url);
+            LogDebug("Backend: " + PreferredBackend);
+            LogDebug("Note: Camera properties could not be retrieved due to an error");
+            LogDebug("============================================");
+        }
     }
 
     private Task VideoCapture_UpdateLoop(VideoCapture capture, CancellationToken ct)
