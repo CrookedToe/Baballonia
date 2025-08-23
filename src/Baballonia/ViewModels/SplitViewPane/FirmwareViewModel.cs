@@ -64,13 +64,6 @@ public partial class FirmwareViewModel : ViewModelBase
     [ObservableProperty]
     private string? _selectedSerialPort;
 
-    public bool IsReadyToFlashFirmwareButWireless =>
-        !string.IsNullOrEmpty(SelectedSerialPort) &&
-        !string.IsNullOrEmpty(SelectedFirmwareType) &&
-        IsWirelessFirmware &&
-        !string.IsNullOrEmpty(WifiSsid) &&
-        !string.IsNullOrEmpty(WifiPassword);
-
     public bool IsReadyToFlashFirmware =>
         !string.IsNullOrEmpty(SelectedSerialPort) &&
         !string.IsNullOrEmpty(SelectedFirmwareType) &&
@@ -127,9 +120,7 @@ public partial class FirmwareViewModel : ViewModelBase
                 case nameof(SelectedSerialPort):
                     IsDeviceSelected = !string.IsNullOrEmpty(SelectedSerialPort);
                     OnPropertyChanged(nameof(IsReadyToFlashFirmware));
-                    OnPropertyChanged(nameof(IsReadyToFlashFirmwareButWireless));
                     break;
-
                 case nameof(SelectedFirmwareType):
                     if (!string.IsNullOrEmpty(SelectedFirmwareType))
                     {
@@ -139,16 +130,13 @@ public partial class FirmwareViewModel : ViewModelBase
                             RefreshWifiNetworks();
                         }
                         OnPropertyChanged(nameof(IsReadyToFlashFirmware));
-                        OnPropertyChanged(nameof(IsReadyToFlashFirmwareButWireless));
                     }
                     break;
-
                 case nameof(WifiSsid):
                 case nameof(WifiPassword):
                     if (IsWirelessFirmware)
                     {
                         OnPropertyChanged(nameof(IsReadyToFlashFirmware));
-                        OnPropertyChanged(nameof(IsReadyToFlashFirmwareButWireless));
                     }
                     break;
             }
