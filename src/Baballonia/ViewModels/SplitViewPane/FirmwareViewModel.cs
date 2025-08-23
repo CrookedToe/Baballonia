@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -6,6 +7,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using Baballonia.Contracts;
 using Baballonia.Models;
@@ -17,7 +19,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Baballonia.ViewModels.SplitViewPane;
 
-public partial class FirmwareViewModel : ViewModelBase
+public partial class FirmwareViewModel : ViewModelBase, IDisposable
 {
     #region Services and Dependencies
 
@@ -29,6 +31,9 @@ public partial class FirmwareViewModel : ViewModelBase
     #endregion
 
     #region Properties
+
+    [ObservableProperty]
+    private bool _supportsUVCFirmware;
 
     [ObservableProperty]
     private bool _isDeviceSelected;
@@ -66,6 +71,8 @@ public partial class FirmwareViewModel : ViewModelBase
     [ObservableProperty]
     private string? _selectedSerialPort;
 
+    [ObservableProperty] private object? _deviceModeSelectedItem;
+
     public bool IsReadyToFlashFirmware =>
         !string.IsNullOrEmpty(SelectedSerialPort) &&
         !string.IsNullOrEmpty(SelectedFirmwareType) &&
@@ -98,10 +105,18 @@ public partial class FirmwareViewModel : ViewModelBase
 
     partial void OnSelectedSerialPortChanged(string? oldValue, string? newValue)
     {
+        SelectedSerialPort = newValue;
         IsDeviceSelected = !string.IsNullOrEmpty(newValue);
-        _firmwareSession.Dispose();
+        if (_firmwareSession is not null)
+            _firmwareSession.Dispose();
         _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, newValue!);
         OnPropertyChanged(nameof(IsReadyToFlashFirmware));
+
+        Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var response = await _firmwareSession.WaitForHeartbeatAsync(TimeSpan.FromSeconds(5));
+            SupportsUVCFirmware = response != null;
+        });
     }
 
     partial void OnSelectedFirmwareTypeChanged(string? oldValue, string? newValue)
@@ -171,7 +186,7 @@ public partial class FirmwareViewModel : ViewModelBase
     {
         AvailableWifiNetworks.Clear();
 
-        var response = await _firmwareSession.SendCommandAsync(new FirmwareRequests.ScanWifiRequest());
+        var response = await _firmwareSession.SendCommandAsync(new FirmwareRequests.ScanWifiRequest(), TimeSpan.FromSeconds(5));
         foreach (var port in response!.Networks.OrderBy(network => network.Rssi).Select(network => network.Ssid))
         {
             AvailableWifiNetworks.Add(port);
@@ -179,12 +194,27 @@ public partial class FirmwareViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RefreshSerialPorts()
+    private async Task RefreshSerialPorts()
     {
         AvailableSerialPorts.Clear();
 
-        foreach (var port in SerialPort.GetPortNames())
+        var response = _firmwareService.ProbeComPorts(TimeSpan.FromSeconds(3)).ToHashSet();
+        foreach (var port in response)
         {
+            AvailableSerialPorts.Add(port);
+
+            if (_firmwareSession is not null)
+                _firmwareSession.Dispose();
+
+            _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, port);
+            await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetPausedRequest(true), TimeSpan.FromSeconds(5));
+            _firmwareSession.Dispose();
+        }
+
+        var serialPorts = _firmwareService.FindAvailableComPorts();
+        foreach (var port in serialPorts)
+        {
+            if (response.Contains(port)) continue;
             AvailableSerialPorts.Add(port);
         }
     }
@@ -210,17 +240,34 @@ public partial class FirmwareViewModel : ViewModelBase
         catch (Exception ex)
         {
             // Log or handle the exception
-            System.Diagnostics.Debug.WriteLine($"Error loading firmware types: {ex.Message}");
+            Debug.WriteLine($"Error loading firmware types: {ex.Message}");
         }
     }
 
     [RelayCommand]
-    private void SendDeviceWifiCredentials()
+    private async Task SendDeviceWifiCredentials()
     {
-        /*Dispatcher.UIThread.Post(() => IsFlashing = true);
-        _firmwareService.SetWirelessCredentials(SelectedSerialPort!, WifiSsid, WifiPassword);
+        Dispatcher.UIThread.Post(() => IsFlashing = true);
+        // await _firmwareSession.SendCommandAsync(new FirmwareRequests.ConnectWifiRequest(m));
         Dispatcher.UIThread.Post(() => IsFlashing = false);
-        Dispatcher.UIThread.Post(() => IsFinished = true);*/
+        Dispatcher.UIThread.Post(() => IsFinished = true);
+    }
+
+    [RelayCommand]
+    private async Task SetDeviceMode()
+    {
+        if (_deviceModeSelectedItem is not ComboBoxItem comboBoxItem)
+            return;
+
+        FirmwareRequests.Mode m = comboBoxItem.Tag switch
+        {
+            "auto" => FirmwareRequests.Mode.Auto,
+            "wifi" => FirmwareRequests.Mode.Wifi,
+            "uvc" => FirmwareRequests.Mode.UVC,
+            _ => FirmwareRequests.Mode.Auto
+        };
+
+        await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetModeRequest(m), TimeSpan.FromSeconds(5));
     }
 
     [RelayCommand]
@@ -318,10 +365,17 @@ public partial class FirmwareViewModel : ViewModelBase
     #region Cleanup
 
     // Called when the ViewModel is no longer needed
-    public void Cleanup()
+    public void Dispose()
     {
         _firmwareService.OnFirmwareUpdateStart -= HandleFirmwareUpdateStart;
         _firmwareService.OnFirmwareUpdateComplete -= HandleFirmwareUpdateComplete;
+
+        foreach (var port in AvailableSerialPorts)
+        {
+            _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, port);
+            _firmwareSession.SendCommand(new FirmwareRequests.SetPausedRequest(false), TimeSpan.FromSeconds(5));
+            _firmwareSession.Dispose();
+        }
     }
 
     #endregion

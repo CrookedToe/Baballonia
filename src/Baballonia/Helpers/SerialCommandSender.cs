@@ -62,6 +62,7 @@ namespace Baballonia.Helpers
 
             return responseBuilder.ToString().Trim();
         }
+
         public void WriteLine(string payload)
         {
             serialPort.DiscardInBuffer();

@@ -62,13 +62,13 @@
                   ItemsSource="{Binding AvailableSerialPorts}"
                   PlaceholderText="Click to see trackers..."
                   SelectedItem="{Binding SelectedSerialPort, Mode=TwoWay}" />
-                <Button Command="{Binding RefreshSerialPorts}" Content="Refresh Trackers" />
+                <Button Command="{Binding RefreshSerialPortsCommand}" Content="Refresh Trackers" />
               </StackPanel>
             </StackPanel>
           </controls:ContentExample>
 
           <!-- Set wi-fi creds without flashing -->
-          <Expander HorizontalAlignment="Stretch" IsVisible="{Binding IsDeviceSelected}">
+          <Expander HorizontalAlignment="Stretch" IsVisible="{Binding SupportsUVCFirmware}">
                 <Expander.Header>
                     <Grid ColumnDefinitions="Auto,Auto,*">
                         <PathIcon
@@ -99,11 +99,14 @@
                     <StackPanel Spacing="12">
                         <TextBlock FontWeight="Bold" Text="Toggle wired/wireless mode" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <ComboBox PlaceholderText="Select a mode...">
-                              <ComboBoxItem x:Name="Wired" Content="Wired" />
-                              <ComboBoxItem x:Name="Wireless" Content="Wireless" />
+                            <ComboBox SelectedItem="{Binding DeviceModeSelectedItem}"
+                                      x:Name="DeviceModeComboBox"
+                                      PlaceholderText="Select a mode...">
+                              <ComboBoxItem Tag="auto" x:Name="Hybrid" Content="Hybrid" />
+                              <ComboBoxItem Tag="uvc" x:Name="Wired" Content="Wired" />
+                              <ComboBoxItem Tag="wifi" x:Name="Wireless" Content="Wireless" />
                             </ComboBox>
-                            <Button Command="{Binding SendDeviceWifiCredentials}">
+                            <Button Command="{Binding SetDeviceModeCommand}">
                               Set Device Mode
                             </Button>
                         </StackPanel>
@@ -154,6 +157,7 @@
 
                       <StackPanel Orientation="Horizontal" Spacing="12">
                         <Button
+                          Command="{Binding SendDeviceWifiCredentialsCommand}"
                           Content="Send Wifi Creds"/>
 
                         <TextBlock

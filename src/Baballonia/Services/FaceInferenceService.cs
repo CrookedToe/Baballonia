@@ -179,7 +179,7 @@ public class FaceInferenceService(ILogger<InferenceService> logger, ILocalSettin
 
         var imageMat = new Mat(platformSettings.InputSize.Height, platformSettings.InputSize.Width, MatType.CV_8U);
 
-        if (platformConnector.TransformRawImage(imageMat, cameraSettings) != true)
+        if (!platformConnector.TransformRawImage(imageMat, cameraSettings))
         {
             imageMat.Dispose();
             return false;

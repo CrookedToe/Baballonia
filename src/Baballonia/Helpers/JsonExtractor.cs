@@ -8,12 +8,16 @@ namespace Baballonia.Helpers
     {
         private StringBuilder _buffer = new StringBuilder();
 
-        public JsonDocument ReadUntilValidJson(Func<string> ReadLineFunction)
+        public JsonDocument ReadUntilValidJson(Func<string> ReadLineFunction, TimeSpan timeout)
         {
             _buffer.Clear();
 
+            var startTime = DateTime.Now;
             while (true)
             {
+                if (DateTime.Now - startTime > timeout)
+                    throw new TimeoutException("Timeout reached");
+
                 string line = ReadLineFunction();
                 if (string.IsNullOrWhiteSpace(line))
                     continue;

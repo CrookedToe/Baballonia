@@ -89,7 +89,7 @@ public class FirmwareService(ILogger<FirmwareService> logger, ICommandSenderFact
     // Tests if a COM port has a Babble heartbeat
     public string[] ProbeComPorts(TimeSpan timeout)
     {
-        var ports = FindAvalibleComPorts();
+        var ports = FindAvailableComPorts();
         List<string> goodPorts = [];
         foreach (var port in ports)
         {
@@ -104,6 +104,10 @@ public class FirmwareService(ILogger<FirmwareService> logger, ICommandSenderFact
                 }
 
                 session.Dispose();
+            }
+            catch (FileNotFoundException ex)
+            {
+                logger.LogInformation("probing port {}: could not probe", port);
             }
             catch (TimeoutException ex)
             {
@@ -122,7 +126,7 @@ public class FirmwareService(ILogger<FirmwareService> logger, ICommandSenderFact
         return [.. goodPorts];
     }
 
-    private string[] FindAvalibleComPorts()
+    public string[] FindAvailableComPorts()
     {
         // GetPortNames() may return single port multiple times
         // https://stackoverflow.com/questions/33401217/serialport-getportnames-returns-same-port-multiple-times
