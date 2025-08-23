@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Baballonia.Contracts;
+using Baballonia.Models;
 using Baballonia.Services;
 using Baballonia.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -23,6 +24,7 @@ public partial class FirmwareViewModel : ViewModelBase
     private readonly GithubService _githubService;
     private readonly FirmwareService _firmwareService;
     private readonly ILocalSettingsService _settingsService;
+    private FirmwareSession _firmwareSession;
 
     #endregion
 
@@ -72,16 +74,6 @@ public partial class FirmwareViewModel : ViewModelBase
 
     #endregion
 
-    #region Commands
-
-    public IRelayCommand SendWifiCredsCommand { get; }
-    public IRelayCommand RefreshWifiListCommand { get; }
-    public IRelayCommand RefreshSerialPortsCommand { get; }
-    public IRelayCommand FlashFirmwareCommand { get; }
-    public IRelayCommand DismissWirelessWarningCommand { get; }
-
-    #endregion
-
     public FirmwareViewModel()
     {
         // Initialize services
@@ -90,64 +82,55 @@ public partial class FirmwareViewModel : ViewModelBase
         _settingsService = Ioc.Default.GetService<ILocalSettingsService>()!;
         _settingsService.Load(this);
 
-        // Initialize commands
-        RefreshWifiListCommand = new RelayCommand(RefreshWifiNetworks);
-        SendWifiCredsCommand = new RelayCommand(SendDeviceWifiCredentials);
-        RefreshSerialPortsCommand = new RelayCommand(RefreshSerialPorts);
-        FlashFirmwareCommand = new RelayCommand(FlashDeviceFirmware, () => IsReadyToFlashFirmware && !IsFlashing);
-        DismissWirelessWarningCommand = new RelayCommand(OnDismissWirelessWarning);
-
         // Initialize events
         _firmwareService.OnFirmwareUpdateStart += HandleFirmwareUpdateStart;
         _firmwareService.OnFirmwareUpdateError += msg => Debug.WriteLine(msg);
         _firmwareService.OnFirmwareUpdateComplete += HandleFirmwareUpdateComplete;
 
         // Initial state setup
-        RefreshSerialPorts();
-        RefreshWifiNetworks();
-        LoadAvailableFirmwareTypesAsync();
-
-        // Setup property changed handlers
-        SetupPropertyChangeHandlers();
+        Task.Run(async () =>
+        {
+            RefreshSerialPorts();
+            await RefreshWifiNetworks();
+            LoadAvailableFirmwareTypesAsync();
+        });
     }
 
-    private void SetupPropertyChangeHandlers()
+    partial void OnSelectedSerialPortChanged(string? oldValue, string? newValue)
     {
-        PropertyChanged += (_, args) =>
-        {
-            switch (args.PropertyName)
-            {
-                case nameof(SelectedSerialPort):
-                    IsDeviceSelected = !string.IsNullOrEmpty(SelectedSerialPort);
-                    OnPropertyChanged(nameof(IsReadyToFlashFirmware));
-                    break;
-                case nameof(SelectedFirmwareType):
-                    if (!string.IsNullOrEmpty(SelectedFirmwareType))
-                    {
-                        IsWirelessFirmware = !SelectedFirmwareType.Contains("Babble_USB");
-                        if (IsWirelessFirmware)
-                        {
-                            RefreshWifiNetworks();
-                        }
-                        OnPropertyChanged(nameof(IsReadyToFlashFirmware));
-                    }
-                    break;
-                case nameof(WifiSsid):
-                case nameof(WifiPassword):
-                    if (IsWirelessFirmware)
-                    {
-                        OnPropertyChanged(nameof(IsReadyToFlashFirmware));
-                    }
-                    break;
-            }
+        IsDeviceSelected = !string.IsNullOrEmpty(newValue);
+        _firmwareSession.Dispose();
+        _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, newValue!);
+        OnPropertyChanged(nameof(IsReadyToFlashFirmware));
+    }
 
-            // Re-evaluate command's CanExecute status
-            FlashFirmwareCommand.NotifyCanExecuteChanged();
-        };
+    partial void OnSelectedFirmwareTypeChanged(string? oldValue, string? newValue)
+    {
+        IsWirelessFirmware = newValue!.Contains("Babble_USB");
+        if (IsWirelessFirmware)
+        {
+            Task.Run(async () => await RefreshWifiNetworks());
+        }
+        OnPropertyChanged(nameof(IsReadyToFlashFirmware));
+    }
+
+    partial void OnWifiSsidChanged(string? oldValue, string? newValue)
+    {
+        if (!IsWirelessFirmware || string.IsNullOrEmpty(newValue)) return;
+
+        OnPropertyChanged(nameof(IsReadyToFlashFirmware));
+    }
+
+    partial void OnWifiPasswordChanged(string? oldValue, string? newValue)
+    {
+        if (!IsWirelessFirmware || string.IsNullOrEmpty(newValue)) return;
+
+        OnPropertyChanged(nameof(IsReadyToFlashFirmware));
     }
 
     #region UI Event Handlers
 
+    [RelayCommand]
     private void OnDismissWirelessWarning()
     {
         WirelessWarningVisible = false;
@@ -159,7 +142,6 @@ public partial class FirmwareViewModel : ViewModelBase
         {
             IsFlashing = true;
             IsFinished = false;
-            FlashFirmwareCommand.NotifyCanExecuteChanged();
         });
     }
 
@@ -177,8 +159,6 @@ public partial class FirmwareViewModel : ViewModelBase
             {
                 IsFinished = true;
             }
-
-            FlashFirmwareCommand.NotifyCanExecuteChanged();
         });
     }
 
@@ -186,17 +166,20 @@ public partial class FirmwareViewModel : ViewModelBase
 
     #region Operations
 
-    public void RefreshWifiNetworks()
+    [RelayCommand]
+    private async Task RefreshWifiNetworks()
     {
         AvailableWifiNetworks.Clear();
 
-        foreach (var port in _firmwareService.GetWirelessCredentials(SelectedSerialPort!))
+        var response = await _firmwareSession.SendCommandAsync(new FirmwareRequests.ScanWifiRequest());
+        foreach (var port in response!.Networks.OrderBy(network => network.Rssi).Select(network => network.Ssid))
         {
             AvailableWifiNetworks.Add(port);
         }
     }
 
-    public void RefreshSerialPorts()
+    [RelayCommand]
+    private void RefreshSerialPorts()
     {
         AvailableSerialPorts.Clear();
 
@@ -231,15 +214,17 @@ public partial class FirmwareViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
     private void SendDeviceWifiCredentials()
     {
-        Dispatcher.UIThread.Post(() => IsFlashing = true);
+        /*Dispatcher.UIThread.Post(() => IsFlashing = true);
         _firmwareService.SetWirelessCredentials(SelectedSerialPort!, WifiSsid, WifiPassword);
         Dispatcher.UIThread.Post(() => IsFlashing = false);
-        Dispatcher.UIThread.Post(() => IsFinished = true);
+        Dispatcher.UIThread.Post(() => IsFinished = true);*/
     }
 
-    private async void FlashDeviceFirmware()
+    [RelayCommand]
+    private async Task FlashDeviceFirmware()
     {
         if (string.IsNullOrEmpty(SelectedFirmwareType) || string.IsNullOrEmpty(SelectedSerialPort))
         {

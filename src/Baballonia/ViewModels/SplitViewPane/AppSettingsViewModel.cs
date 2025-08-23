@@ -32,7 +32,7 @@ public partial class AppSettingsViewModel : ViewModelBase
     private string _oscPrefix;
 
     [ObservableProperty]
-    [property: SavedSetting("AppSettings_OneEuroMinEnabled", false)]
+    [property: SavedSetting("AppSettings_OneEuroEnabled", false)]
     private bool _oneEuroMinEnabled;
 
     [ObservableProperty]

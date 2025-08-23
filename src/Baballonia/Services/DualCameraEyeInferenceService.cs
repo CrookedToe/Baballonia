@@ -76,9 +76,8 @@ public class DualCameraEyeInferenceService(ILogger<InferenceService> logger, ILo
         // Initialize tensors and filters for both eyes
         for (int i = 0; i < 2; i++)
         {
-            float[] noisyPoint = new float[ExpectedRawExpressions];
             var filter = new OneEuroFilter(
-                x0: noisyPoint,
+                x0: new float[ExpectedRawExpressions],
                 minCutoff: minCutoff,
                 beta: speedCoeff
             );
