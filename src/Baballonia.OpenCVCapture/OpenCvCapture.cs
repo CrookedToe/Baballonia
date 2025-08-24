@@ -8,7 +8,7 @@ namespace Baballonia.OpenCVCapture;
 /// <summary>
 /// Wrapper class for OpenCV
 /// </summary>
-public sealed partial class OpenCvCapture : Capture
+public sealed partial class OpenCvCapture(string url, object? logger = null) : Capture(url)
 {
     // Numbers only, http or GStreamer pipeline
     [GeneratedRegex(@"^\d+$|^https?://.*|^/dev/video\d+$|\s+!\s*appsink$|\.local$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
@@ -16,22 +16,12 @@ public sealed partial class OpenCvCapture : Capture
 
     public override HashSet<Regex> Connections { get; set; } = [MyRegex()];
 
-    private readonly ILogger? _logger;
+    private readonly ILogger? _logger = logger as ILogger;
     private VideoCapture? _videoCapture;
     private static readonly VideoCaptureAPIs PreferredBackend;
 
     private Task? _updateTask;
     private readonly CancellationTokenSource _updateTaskCts = new();
-
-    public OpenCvCapture(string url) : base(url)
-    {
-        _logger = null;
-    }
-
-    public OpenCvCapture(string url, object logger) : base(url)
-    {
-        _logger = logger as ILogger;
-    }
 
     static OpenCvCapture()
     {

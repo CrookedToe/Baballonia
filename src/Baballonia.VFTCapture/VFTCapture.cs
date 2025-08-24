@@ -1,5 +1,6 @@
 
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using Capture = Baballonia.SDK.Capture;
 
@@ -8,7 +9,7 @@ namespace Baballonia.VFTCapture;
 /// <summary>
 /// Vive Facial Tracker camera capture
 /// </summary>
-public partial class VftCapture : Capture
+public partial class VftCapture(string url, object? logger = null) : Capture(url)
 {
     [GeneratedRegex(@"^/dev/video", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
     private static partial Regex MyRegex();
@@ -18,9 +19,24 @@ public partial class VftCapture : Capture
     private VideoCapture? _videoCapture;
     private readonly Mat _orignalMat = new();
 
-    public VftCapture(string url) : base(url) { }
+    private readonly ILogger? _logger = logger as ILogger;
 
     private bool _loop;
+
+    private void LogDebug(string message)
+    {
+        _logger?.LogInformation(message);
+    }
+
+    private void LogWarning(string message)
+    {
+        _logger?.LogWarning(message);
+    }
+
+    private void LogError(Exception ex, string message)
+    {
+        _logger?.LogError(ex, message);
+    }
 
     /// <summary>
     /// Starts video capture and applies custom resolution and framerate settings.
@@ -28,31 +44,40 @@ public partial class VftCapture : Capture
     /// <returns>True if the video capture started successfully, otherwise false.</returns>
     public override async Task<bool> StartCapture()
     {
+        LogDebug("=== STARTING VFT CAMERA CAPTURE ===");
+        LogDebug("VFT Device URL: '" + Url + "'");
+        LogDebug("Operating System: " + Environment.OSVersion);
+        
         using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
         {
             try
             {
                 // Open the VFT device and initialize it.
+                LogDebug("Activating VFT tracker state");
                 SetTrackerState(setActive: true);
 
                 // Initialize VideoCapture with URL, timeout for robustness
                 // Set capture mode to YUYV
                 // Prevent automatic conversion to RGB
+                LogDebug("Creating VideoCapture with V4L2 backend");
                 _videoCapture = await Task.Run(() => new VideoCapture(Url, VideoCaptureAPIs.V4L2), cts.Token);
                 _videoCapture.Set(VideoCaptureProperties.Mode, 3);
                 _videoCapture.Set(VideoCaptureProperties.ConvertRgb, 0);
 
                 _loop = true;
+                LogDebug("Starting VFT video capture update loop");
                 _ = Task.Run(VideoCapture_UpdateLoop);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LogError(ex, "Failed to start VFT camera capture");
                 IsReady = false;
                 return IsReady;
             }
         }
 
         IsReady = _videoCapture!.IsOpened();
+        LogDebug("VFT camera capture started successfully: " + IsReady);
         return IsReady;
     }
 
@@ -118,15 +143,23 @@ public partial class VftCapture : Capture
     /// <returns>True if capture stopped successfully, otherwise false.</returns>
     public override Task<bool> StopCapture()
     {
+        LogDebug("Stopping VFT camera capture");
+        
         if (_videoCapture is null)
+        {
+            LogDebug("VFT VideoCapture is already null, returning false");
             return Task.FromResult(false);
+        }
 
         _loop = false;
         IsReady = false;
+        LogDebug("Releasing and disposing VFT VideoCapture");
         _videoCapture.Release();
         _videoCapture.Dispose();
         _videoCapture = null;
+        LogDebug("Deactivating VFT tracker state");
         SetTrackerState(false);
+        LogDebug("VFT camera capture stopped successfully");
         return Task.FromResult(true);
     }
 }

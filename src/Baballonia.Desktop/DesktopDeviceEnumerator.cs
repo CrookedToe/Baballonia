@@ -17,21 +17,11 @@ using DirectShowLib;
 
 namespace Baballonia.Desktop;
 
-public sealed class DesktopDeviceEnumerator : IDeviceEnumerator
+public sealed class DesktopDeviceEnumerator(ILogger<DesktopDeviceEnumerator>? logger = null) : IDeviceEnumerator
 {
-    private readonly ILogger<DesktopDeviceEnumerator>? _logger;
+    private readonly ILogger<DesktopDeviceEnumerator>? _logger = logger;
     
     public Dictionary<string, string> Cameras { get; set; } = null!;
-
-    public DesktopDeviceEnumerator()
-    {
-        _logger = null;
-    }
-
-    public DesktopDeviceEnumerator(ILogger<DesktopDeviceEnumerator> logger)
-    {
-        _logger = logger;
-    }
 
     /// <summary>
     /// Lists available cameras with friendly names as dictionary keys and device identifiers as values.

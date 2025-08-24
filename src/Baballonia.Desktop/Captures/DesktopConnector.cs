@@ -25,7 +25,9 @@ public class DesktopConnector : PlatformConnector, IPlatformConnector
 
         // Load all modules
         var dlls = Directory.GetFiles(AppContext.BaseDirectory, "*.dll");
+        Logger.LogDebug("Found {DllCount} DLL files in application directory: {DllFiles}", dlls.Length, string.Join(", ", dlls.Select(Path.GetFileName)));
         Captures = LoadAssembliesFromPath(dlls);
+        Logger.LogDebug("Loaded {CaptureCount} capture types from assemblies", Captures.Count);
     }
 
     private Dictionary<HashSet<Regex>, Type> LoadAssembliesFromPath(string[] paths)
@@ -39,12 +41,19 @@ public class DesktopConnector : PlatformConnector, IPlatformConnector
                 var alc = new AssemblyLoadContext(dll, true);
                 var loaded = alc.LoadFromAssemblyPath(dll);
 
+                Logger.LogDebug("Scanning assembly '{AssemblyName}' for capture types", loaded.FullName);
                 foreach (var type in loaded.GetExportedTypes())
                 {
+                    Logger.LogDebug("Checking type '{TypeName}' for Capture compatibility", type.FullName);
                     if (typeof(Baballonia.SDK.Capture).IsAssignableFrom(type) && !type.IsAbstract)
                     {
-                        // Check if the type has a constructor that takes a string parameter (for url)
-                        var constructor = type.GetConstructor(new[] { typeof(string) });
+                        // Check if the type has a constructor that takes a string parameter and optional logger (for url and logger)
+                        var constructor = type.GetConstructor(new[] { typeof(string), typeof(object) });
+                        if (constructor == null)
+                        {
+                            // Fallback to constructor with just string parameter
+                            constructor = type.GetConstructor(new[] { typeof(string) });
+                        }
                         if (constructor != null)
                         {
                             // Get the Connections property from the type (instance property)
@@ -52,9 +61,19 @@ public class DesktopConnector : PlatformConnector, IPlatformConnector
                             if (connectionsProperty != null && connectionsProperty.PropertyType == typeof(HashSet<Regex>))
                             {
                                 // Create a temporary instance to access the Connections property
-                                var tempInstance = (Capture)Activator.CreateInstance(type, "temp")!;
+                                // Handle legacy constructor signatures
+                                Capture tempInstance;
+                                if (constructor.GetParameters().Length == 2)
+                                {
+                                    tempInstance = (Capture)Activator.CreateInstance(type, "temp", null)!;
+                                }
+                                else
+                                {
+                                    tempInstance = (Capture)Activator.CreateInstance(type, "temp")!;
+                                }
                                 var connections = (HashSet<Regex>)connectionsProperty.GetValue(tempInstance)!;
                                 returnList.Add(connections, type);
+                                Logger.LogDebug("Successfully loaded capture type '{CaptureTypeName}' with {PatternCount} connection patterns", type.Name, connections.Count);
                             }
                         }
                     }
@@ -62,8 +81,7 @@ public class DesktopConnector : PlatformConnector, IPlatformConnector
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                //_logger.LogWarning("{error} Assembly not able to be loaded. Skipping.", e.Message);
+                Logger.LogWarning("Assembly '{DllPath}' not able to be loaded. Skipping. Error: {ErrorMessage}", dll, e.Message);
             }
         }
 

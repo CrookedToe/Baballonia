@@ -9,6 +9,7 @@ using Android.Util;
 using Android.Views;
 using Baballonia.Services.Inference;
 using Java.Lang;
+using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -24,7 +25,7 @@ namespace Baballonia.Android.Captures;
 /// </summary>
 public class AndroidCamera2Capture : Capture
 {
-    public override HashSet<Regex> Connections { get; set; }
+    public override HashSet<Regex> Connections { get; set; } = new();
 
     private readonly Context _context;
     private UsbDevice _usbDevice;
@@ -39,7 +40,7 @@ public class AndroidCamera2Capture : Capture
     private readonly object _frameLock = new();
     private bool _isCapturing;
 
-    public AndroidCamera2Capture(string url) : base(url)
+    public AndroidCamera2Capture(string url, object? logger = null) : base(url)
     {
         _context = Application.Context;
         _cameraManager = (CameraManager)_context.GetSystemService(Context.CameraService)!;

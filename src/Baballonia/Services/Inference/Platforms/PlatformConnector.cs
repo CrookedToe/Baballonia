@@ -79,9 +79,18 @@ public abstract class PlatformConnector
                     foundMatchingCapture = true;
                     Logger.LogDebug("Found matching capture type: {CaptureTypeName}", capture.Value.Name);
                     
+                    try
+                    {
                         Logger.LogDebug("Attempting to create {CaptureTypeName} with logger support", capture.Value.Name);
                         Capture = (Capture)Activator.CreateInstance(capture.Value, url, Logger)!;
                         Logger.LogDebug("Successfully created {CaptureTypeName} with logger", capture.Value.Name);
+                    }
+                    catch (MissingMethodException)
+                    {
+                        Logger.LogDebug("Logger constructor failed, trying with just URL parameter for {CaptureTypeName}", capture.Value.Name);
+                        Capture = (Capture)Activator.CreateInstance(capture.Value, url)!;
+                        Logger.LogDebug("Successfully created {CaptureTypeName} with URL only", capture.Value.Name);
+                    }
                     
                     Logger.LogInformation("Changed capture source to {CaptureTypeName} with url {Url}.", capture.Value.Name, url);
                     break;
