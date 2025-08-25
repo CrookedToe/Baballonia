@@ -71,6 +71,12 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private string? _selectedSerialPort;
 
+    [ObservableProperty]
+    private bool _refreshSerialPortsButtonEnabled = true;
+
+    [ObservableProperty]
+    private string _refreshSerialPortsButtonContent = "Scan for Trackers";
+
     [ObservableProperty] private object? _deviceModeSelectedItem;
 
     public bool IsReadyToFlashFirmware =>
@@ -95,12 +101,7 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
         _firmwareService.OnFirmwareUpdateComplete += HandleFirmwareUpdateComplete;
 
         // Initial state setup
-        Task.Run(async () =>
-        {
-            RefreshSerialPorts();
-            await RefreshWifiNetworks();
-            LoadAvailableFirmwareTypesAsync();
-        });
+        LoadAvailableFirmwareTypesAsync();
     }
 
     partial void OnSelectedSerialPortChanged(string? oldValue, string? newValue)
@@ -196,27 +197,37 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private async Task RefreshSerialPorts()
     {
-        AvailableSerialPorts.Clear();
-
-        var response = _firmwareService.ProbeComPorts(TimeSpan.FromSeconds(3)).ToHashSet();
-        foreach (var port in response)
+        await Task.Run(async () =>
         {
-            AvailableSerialPorts.Add(port);
+            AvailableSerialPorts.Clear();
+            RefreshSerialPortsButtonEnabled = false;
+            RefreshSerialPortsButtonContent = "Scanning...";
 
-            if (_firmwareSession is not null)
+            var response = _firmwareService.ProbeComPorts(TimeSpan.FromSeconds(3)).ToHashSet();
+            foreach (var port in response)
+            {
+                AvailableSerialPorts.Add(port);
+                if (_firmwareSession is not null)
+                    _firmwareSession.Dispose();
+
+                Dispatcher.UIThread.Post(() => RefreshSerialPortsButtonContent = $"Found UVC device at {port}...");
+                _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, port);
+                await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetPausedRequest(true),
+                    TimeSpan.FromSeconds(5));
                 _firmwareSession.Dispose();
+            }
 
-            _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, port);
-            await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetPausedRequest(true), TimeSpan.FromSeconds(5));
-            _firmwareSession.Dispose();
-        }
+            var serialPorts = _firmwareService.FindAvailableComPorts();
+            foreach (var port in serialPorts)
+            {
+                if (response.Contains(port)) continue;
+                Dispatcher.UIThread.Post(() => RefreshSerialPortsButtonContent = $"Found serial device at {port}...");
+                AvailableSerialPorts.Add(port);
+            }
 
-        var serialPorts = _firmwareService.FindAvailableComPorts();
-        foreach (var port in serialPorts)
-        {
-            if (response.Contains(port)) continue;
-            AvailableSerialPorts.Add(port);
-        }
+            RefreshSerialPortsButtonEnabled = true;
+            Dispatcher.UIThread.Post(() => RefreshSerialPortsButtonContent = "Scan complete. Click to rescan.");
+        });
     }
 
     private async void LoadAvailableFirmwareTypesAsync()

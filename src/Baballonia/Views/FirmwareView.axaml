@@ -62,7 +62,7 @@
                   ItemsSource="{Binding AvailableSerialPorts}"
                   PlaceholderText="Click to see trackers..."
                   SelectedItem="{Binding SelectedSerialPort, Mode=TwoWay}" />
-                <Button Command="{Binding RefreshSerialPortsCommand}" Content="Refresh Trackers" />
+                <Button Command="{Binding RefreshSerialPortsCommand}" IsEnabled="{Binding RefreshSerialPortsButtonEnabled}" Content="{Binding RefreshSerialPortsButtonContent}" />
               </StackPanel>
             </StackPanel>
           </controls:ContentExample>

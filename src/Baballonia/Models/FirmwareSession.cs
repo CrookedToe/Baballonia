@@ -59,7 +59,7 @@ public class FirmwareSession
         {
             Thread.Sleep(10); // give it some breathing time
 
-            JsonDocument json = jsonExtractor.ReadUntilValidJson(() => _commandSender.ReadLine(), timeout);
+            JsonDocument json = jsonExtractor.ReadUntilValidJson(() => _commandSender.ReadLine(timeout), timeout);
             _logger.LogDebug("Received json: {}", json.RootElement.GetRawText());
             if (JsonHasPrefix(json, responseJsonRootKey))
                 return json;
