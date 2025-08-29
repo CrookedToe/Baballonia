@@ -57,29 +57,49 @@ public class ProcessingLoopService : IDisposable
 
     private async Task LoadFilters()
     {
-        var enabled = await _localSettingsService.ReadSettingAsync<bool>("AppSettings_OneEuroEnabled");
-        var cutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_OneEuroMinFreqCutoff");
-        var speedCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_OneEuroSpeedCutoff");
+        // Load face tracking filter settings
+        var faceEnabled = await _localSettingsService.ReadSettingAsync<bool>("AppSettings_FaceOneEuroEnabled");
+        var faceCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_FaceOneEuroMinFreqCutoff");
+        var faceSpeedCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_FaceOneEuroSpeedCutoff");
 
-        if (!enabled)
-            return;
+        // Load eye tracking filter settings
+        var eyeEnabled = await _localSettingsService.ReadSettingAsync<bool>("AppSettings_EyeOneEuroEnabled");
+        var eyeCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_EyeOneEuroMinFreqCutoff");
+        var eyeSpeedCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_EyeOneEuroSpeedCutoff");
 
-        float[] faceArray = new float[Utils.FaceRawExpressions];
-        var faceFilter = new OneEuroFilter(
-            faceArray,
-            minCutoff: cutoff,
-            beta: speedCutoff
-        );
-        float[] eyeArray = new float[Utils.EyeRawExpressions];
-        var eyeFilter = new OneEuroFilter(
-            eyeArray,
-            minCutoff: cutoff,
-            beta: speedCutoff
-        );
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            FaceProcessingPipeline.Filter = faceFilter;
-            EyesProcessingPipeline.Filter = eyeFilter;
+            // Setup face tracking filter
+            if (faceEnabled)
+            {
+                float[] faceArray = new float[Utils.FaceRawExpressions];
+                var faceFilter = new OneEuroFilter(
+                    faceArray,
+                    minCutoff: faceCutoff,
+                    beta: faceSpeedCutoff
+                );
+                FaceProcessingPipeline.Filter = faceFilter;
+            }
+            else
+            {
+                FaceProcessingPipeline.Filter = null;
+            }
+
+            // Setup eye tracking filter
+            if (eyeEnabled)
+            {
+                float[] eyeArray = new float[Utils.EyeRawExpressions];
+                var eyeFilter = new OneEuroFilter(
+                    eyeArray,
+                    minCutoff: eyeCutoff,
+                    beta: eyeSpeedCutoff
+                );
+                EyesProcessingPipeline.Filter = eyeFilter;
+            }
+            else
+            {
+                EyesProcessingPipeline.Filter = null;
+            }
         });
     }
 

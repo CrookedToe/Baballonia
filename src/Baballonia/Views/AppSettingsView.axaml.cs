@@ -17,10 +17,14 @@ public partial class AppSettingsView : UserControl
     private readonly IMainService _mainService;
     private readonly ComboBox _themeComboBox;
     private readonly ComboBox _langComboBox;
-    private readonly ComboBox _selectedMinFreqCutoffComboBox;
-    private readonly ComboBox _selectedSpeedCutoffComboxBox;
-    private readonly NumericUpDown _selectedMinFreqCutoffUpDown;
-    private readonly NumericUpDown _selectedSpeedCutoffUpDown;
+    private readonly ComboBox _faceSelectedMinFreqCutoffComboBox;
+    private readonly ComboBox _faceSelectedSpeedCutoffComboxBox;
+    private readonly NumericUpDown _faceSelectedMinFreqCutoffUpDown;
+    private readonly NumericUpDown _faceSelectedSpeedCutoffUpDown;
+    private readonly ComboBox _eyeSelectedMinFreqCutoffComboBox;
+    private readonly ComboBox _eyeSelectedSpeedCutoffComboxBox;
+    private readonly NumericUpDown _eyeSelectedMinFreqCutoffUpDown;
+    private readonly NumericUpDown _eyeSelectedSpeedCutoffUpDown;
 
     public AppSettingsView()
     {
@@ -34,10 +38,15 @@ public partial class AppSettingsView : UserControl
         _langComboBox = this.Find<ComboBox>("LangCombo")!;
         _langComboBox.SelectionChanged += LangComboBox_SelectionChanged;
 
-        _selectedMinFreqCutoffComboBox = this.Find<ComboBox>("SelectedMinFreqCutoffComboBox")!;
-        _selectedSpeedCutoffComboxBox = this.Find<ComboBox>("SelectedSpeedCutoffComboBox")!;
-        _selectedMinFreqCutoffUpDown = this.Find<NumericUpDown>("SelectedMinFreqCutoffUpDown")!;
-        _selectedSpeedCutoffUpDown = this.Find<NumericUpDown>("SelectedSpeedCutoffUpDown")!;
+        _faceSelectedMinFreqCutoffComboBox = this.Find<ComboBox>("FaceSelectedMinFreqCutoffComboBox")!;
+        _faceSelectedSpeedCutoffComboxBox = this.Find<ComboBox>("FaceSelectedSpeedCutoffComboBox")!;
+        _faceSelectedMinFreqCutoffUpDown = this.Find<NumericUpDown>("FaceSelectedMinFreqCutoffUpDown")!;
+        _faceSelectedSpeedCutoffUpDown = this.Find<NumericUpDown>("FaceSelectedSpeedCutoffUpDown")!;
+        
+        _eyeSelectedMinFreqCutoffComboBox = this.Find<ComboBox>("EyeSelectedMinFreqCutoffComboBox")!;
+        _eyeSelectedSpeedCutoffComboxBox = this.Find<ComboBox>("EyeSelectedSpeedCutoffComboBox")!;
+        _eyeSelectedMinFreqCutoffUpDown = this.Find<NumericUpDown>("EyeSelectedMinFreqCutoffUpDown")!;
+        _eyeSelectedSpeedCutoffUpDown = this.Find<NumericUpDown>("EyeSelectedSpeedCutoffUpDown")!;
 
         UpdateThemes();
 
@@ -128,29 +137,57 @@ public partial class AppSettingsView : UserControl
         }
     }
 
-    private void SelectedSpeedCutoffComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    // Face tracking filter event handlers
+    private void FaceSelectedSpeedCutoffComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (sender is not ComboBox comboBox) return;
 
-        _selectedSpeedCutoffUpDown.Value = comboBox.SelectedIndex switch
+        _faceSelectedSpeedCutoffUpDown.Value = comboBox.SelectedIndex switch
         {
             0 => 0.5m,
             1 => 1,
             2 => 2,
-            _ => _selectedSpeedCutoffUpDown.Value
+            _ => _faceSelectedSpeedCutoffUpDown.Value
         };
     }
 
-    private void SelectedMinFreqCutoffComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void FaceSelectedMinFreqCutoffComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (sender is not ComboBox comboBox) return;
 
-        _selectedMinFreqCutoffUpDown.Value = comboBox.SelectedIndex switch
+        _faceSelectedMinFreqCutoffUpDown.Value = comboBox.SelectedIndex switch
         {
             0 => 0.5m,
             1 => 1,
             2 => 2,
-            _ => _selectedMinFreqCutoffUpDown.Value
+            _ => _faceSelectedMinFreqCutoffUpDown.Value
+        };
+    }
+
+    // Eye tracking filter event handlers
+    private void EyeSelectedSpeedCutoffComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox comboBox) return;
+
+        _eyeSelectedSpeedCutoffUpDown.Value = comboBox.SelectedIndex switch
+        {
+            0 => 0.1m,  // Very Low for eye tracking
+            1 => 0.5m,  // Low
+            2 => 1m,    // Medium
+            _ => _eyeSelectedSpeedCutoffUpDown.Value
+        };
+    }
+
+    private void EyeSelectedMinFreqCutoffComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox comboBox) return;
+
+        _eyeSelectedMinFreqCutoffUpDown.Value = comboBox.SelectedIndex switch
+        {
+            0 => 0.1m,  // Very Low for eye tracking
+            1 => 0.5m,  // Low
+            2 => 1m,    // Medium
+            _ => _eyeSelectedMinFreqCutoffUpDown.Value
         };
     }
 }
