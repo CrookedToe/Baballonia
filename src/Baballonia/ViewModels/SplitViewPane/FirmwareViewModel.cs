@@ -33,7 +33,7 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
     #region Properties
 
     [ObservableProperty]
-    private bool _supportsUVCFirmware;
+    private bool _canFlash;
 
     [ObservableProperty]
     private bool _isDeviceSelected;
@@ -79,11 +79,16 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty] private object? _deviceModeSelectedItem;
 
+    [ObservableProperty] private string _setDeviceModeText;
+
+    private string _lastMode;
+
     public bool IsReadyToFlashFirmware =>
         !string.IsNullOrEmpty(SelectedSerialPort) &&
         !string.IsNullOrEmpty(SelectedFirmwareType) &&
         (!IsWirelessFirmware ||
          (!string.IsNullOrEmpty(WifiSsid) && !string.IsNullOrEmpty(WifiPassword)));
+
 
     #endregion
 
@@ -106,23 +111,40 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
 
     partial void OnSelectedSerialPortChanged(string? oldValue, string? newValue)
     {
+        if (string.IsNullOrEmpty(newValue)) return;
+
         SelectedSerialPort = newValue;
         IsDeviceSelected = !string.IsNullOrEmpty(newValue);
+
         if (_firmwareSession is not null)
             _firmwareSession.Dispose();
+
         _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, newValue!);
         OnPropertyChanged(nameof(IsReadyToFlashFirmware));
 
         Dispatcher.UIThread.InvokeAsync(async () =>
         {
+            // ONLY boards that have not been configured will emit a heartbeat
             var response = await _firmwareSession.WaitForHeartbeatAsync(TimeSpan.FromSeconds(5));
-            SupportsUVCFirmware = response != null;
+            if (response != null)
+            {
+                // HACK need to set device in wireless mode to enable device-reflashing
+                _lastMode = await _firmwareSession.SendCommandAsync(new FirmwareRequests.GetDeviceModeRequest(), TimeSpan.FromSeconds(5));
+                await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetModeRequest(FirmwareRequests.Mode.Wifi), TimeSpan.FromSeconds(5));
+                CanFlash = string.IsNullOrEmpty(_lastMode) || _lastMode == "WiFi";
+            }
+            else
+            {
+                // We have a tracker that has wired or wireless firmware
+            }
         });
+
+        _firmwareSession.Dispose();
     }
 
     partial void OnSelectedFirmwareTypeChanged(string? oldValue, string? newValue)
     {
-        IsWirelessFirmware = newValue!.Contains("Babble_USB");
+        IsWirelessFirmware = !newValue!.Contains("Babble_USB");
         if (IsWirelessFirmware)
         {
             Task.Run(async () => await RefreshWifiNetworks());
@@ -203,10 +225,9 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
             RefreshSerialPortsButtonEnabled = false;
             RefreshSerialPortsButtonContent = "Scanning...";
 
-            var response = _firmwareService.ProbeComPorts(TimeSpan.FromSeconds(3)).ToHashSet();
+            var response = _firmwareService.FindAvailableComPorts();
             foreach (var port in response)
             {
-                AvailableSerialPorts.Add(port);
                 if (_firmwareSession is not null)
                     _firmwareSession.Dispose();
 
@@ -215,13 +236,7 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
                 await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetPausedRequest(true),
                     TimeSpan.FromSeconds(5));
                 _firmwareSession.Dispose();
-            }
 
-            var serialPorts = _firmwareService.FindAvailableComPorts();
-            foreach (var port in serialPorts)
-            {
-                if (response.Contains(port)) continue;
-                Dispatcher.UIThread.Post(() => RefreshSerialPortsButtonContent = $"Found serial device at {port}...");
                 AvailableSerialPorts.Add(port);
             }
 
@@ -259,7 +274,7 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
     private async Task SendDeviceWifiCredentials()
     {
         Dispatcher.UIThread.Post(() => IsFlashing = true);
-        // await _firmwareSession.SendCommandAsync(new FirmwareRequests.ConnectWifiRequest(m));
+        // _firmwareSession.SendCommandAsync(new FirmwareRequests.ConnectWifiRequest(WifiSsid, WifiPassword));
         Dispatcher.UIThread.Post(() => IsFlashing = false);
         Dispatcher.UIThread.Post(() => IsFinished = true);
     }
@@ -270,15 +285,10 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
         if (_deviceModeSelectedItem is not ComboBoxItem comboBoxItem)
             return;
 
-        FirmwareRequests.Mode m = comboBoxItem.Tag switch
-        {
-            "auto" => FirmwareRequests.Mode.Auto,
-            "wifi" => FirmwareRequests.Mode.Wifi,
-            "uvc" => FirmwareRequests.Mode.UVC,
-            _ => FirmwareRequests.Mode.Auto
-        };
-
+        var m = StringToMode(comboBoxItem.Tag!.ToString()!);
         await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetModeRequest(m), TimeSpan.FromSeconds(5));
+        _lastMode = string.Empty;
+        SetDeviceModeText = "Mode set! Click to set again.";
     }
 
     [RelayCommand]
@@ -371,15 +381,39 @@ public partial class FirmwareViewModel : ViewModelBase, IDisposable
         }
     }
 
+    private static FirmwareRequests.Mode StringToMode(string mode)
+    {
+        return mode switch
+        {
+            "auto" => FirmwareRequests.Mode.Auto,
+            "wifi" => FirmwareRequests.Mode.Wifi,
+            "uvc" => FirmwareRequests.Mode.UVC,
+            _ => FirmwareRequests.Mode.Auto
+        };
+    }
+
     #endregion
 
     #region Cleanup
 
     // Called when the ViewModel is no longer needed
-    public void Dispose()
+    public async void Dispose()
     {
         _firmwareService.OnFirmwareUpdateStart -= HandleFirmwareUpdateStart;
         _firmwareService.OnFirmwareUpdateComplete -= HandleFirmwareUpdateComplete;
+
+        if (!string.IsNullOrEmpty(_selectedSerialPort))
+        {
+            _firmwareSession = _firmwareService.StartSession(CommandSenderType.Serial, _selectedSerialPort);
+
+            // If the user left this screen without changing the device mode, reset the device back to its original state
+            if (!string.IsNullOrEmpty(_lastMode))
+            {
+                FirmwareRequests.Mode m = StringToMode(_lastMode);
+                await _firmwareSession.SendCommandAsync(new FirmwareRequests.SetModeRequest(m), TimeSpan.FromSeconds(5));
+            }
+
+        }
 
         foreach (var port in AvailableSerialPorts)
         {

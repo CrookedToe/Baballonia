@@ -67,8 +67,8 @@
             </StackPanel>
           </controls:ContentExample>
 
-          <!-- Set wi-fi creds without flashing -->
-          <Expander HorizontalAlignment="Stretch" IsVisible="{Binding SupportsUVCFirmware}">
+          <!-- Set the device mode (first time set up) -->
+          <Expander HorizontalAlignment="Stretch" IsVisible="{Binding CanFlash}">
                 <Expander.Header>
                     <Grid ColumnDefinitions="Auto,Auto,*">
                         <PathIcon
@@ -85,37 +85,64 @@
                                 Margin="5"
                                 FontSize="16"
                                 FontWeight="SemiBold"
-                                Text="Configuration" />
+                                Text="First time set-up" />
                             <TextBlock
                                 Margin="5"
                                 FontSize="14"
                                 Foreground="{DynamicResource SystemChromeGrayColor}"
-                                Text="Toggle wired/wireless mode, connect to Wifi, etc" />
+                                Text="Toggle wired/wireless mode" />
                         </StackPanel>
                     </Grid>
                 </Expander.Header>
                 <StackPanel Spacing="24">
-                    <!-- Set Wifi Creds/Password -->
+                  <StackPanel Spacing="24">
                     <StackPanel Spacing="12">
-                        <TextBlock FontWeight="Bold" Text="Toggle wired/wireless mode" />
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <ComboBox SelectedItem="{Binding DeviceModeSelectedItem}"
-                                      x:Name="DeviceModeComboBox"
-                                      PlaceholderText="Select a mode...">
-                              <ComboBoxItem Tag="auto" x:Name="Hybrid" Content="Hybrid" />
-                              <ComboBoxItem Tag="uvc" x:Name="Wired" Content="Wired" />
-                              <ComboBoxItem Tag="wifi" x:Name="Wireless" Content="Wireless" />
-                            </ComboBox>
-                            <Button Command="{Binding SetDeviceModeCommand}">
-                              Set Device Mode
-                            </Button>
-                        </StackPanel>
+                      <TextBlock FontWeight="Bold" Text="Toggle wired/wireless mode" />
+                      <StackPanel Orientation="Horizontal" Spacing="12">
+                        <ComboBox SelectedItem="{Binding DeviceModeSelectedItem}"
+                                  x:Name="DeviceModeComboBox"
+                                  PlaceholderText="Select a mode...">
+                          <ComboBoxItem Tag="auto" x:Name="Hybrid" Content="Hybrid" />
+                          <ComboBoxItem Tag="uvc" x:Name="Wired" Content="Wired" />
+                          <ComboBoxItem Tag="wifi" x:Name="Wireless" Content="Wireless" />
+                        </ComboBox>
+                        <Button Command="{Binding SetDeviceModeCommand}" Content="{Binding SetDeviceModeText}">
+                        </Button>
+                      </StackPanel>
                     </StackPanel>
+                  </StackPanel>
 
-                    <Separator/>
+                </StackPanel>
+            </Expander>
 
-                    <!-- Firmware flashing tab -->
-                    <StackPanel Spacing="24">
+          <!-- Set wi-fi creds without flashing -->
+          <Expander HorizontalAlignment="Stretch" IsVisible="{Binding IsDeviceSelected}">
+                <Expander.Header>
+                    <Grid ColumnDefinitions="Auto,Auto,*">
+                        <PathIcon
+                            Grid.Column="0"
+                            Width="32"
+                            Margin="10,10,20,10"
+                            VerticalAlignment="Center"
+                            Data="{StaticResource WirelessRegular}" />
+                        <StackPanel
+                            Grid.Column="1"
+                            Margin="0,10,0,10"
+                            HorizontalAlignment="Stretch">
+                            <TextBlock
+                                Margin="5"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Text="Wifi Configuration" />
+                            <TextBlock
+                                Margin="5"
+                                FontSize="14"
+                                Foreground="{DynamicResource SystemChromeGrayColor}"
+                                Text="Connect to Wifi" />
+                        </StackPanel>
+                    </Grid>
+                </Expander.Header>
+               <StackPanel Spacing="24">
                       <StackPanel Spacing="12">
                           <TextBlock FontWeight="Bold" Text="Set your Wi-Fi credentials" />
                           <TextBlock TextWrapping="Wrap">
@@ -178,7 +205,6 @@
                         IsVisible="{Binding IsFinished}"
                         Text="Done! You may need to restart your tracker/the Babble App :)" />
                     </StackPanel>
-                </StackPanel>
             </Expander>
 
           <!-- Firmware flashing -->
