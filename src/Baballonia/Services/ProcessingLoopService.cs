@@ -54,8 +54,6 @@ public class ProcessingLoopService : IDisposable
         _drawTimer.Start();
     }
 
-
-
     public async Task SetupEyeInference()
     {
         var eyeModel = await _localSettingsService.ReadSettingAsync<string>("EyeHome_EyeModel", "eyeModel.onnx");

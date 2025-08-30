@@ -43,16 +43,14 @@ public partial class AppSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _onboardingEnabled;
 
     private ProcessingLoopService _processingLoopService;
+    
     public AppSettingsViewModel()
     {
-        // General/Calibration Settings
         OscTarget = Ioc.Default.GetService<IOscTarget>()!;
         GithubService = Ioc.Default.GetService<GithubService>()!;
         SettingsService = Ioc.Default.GetService<ILocalSettingsService>()!;
         _processingLoopService = Ioc.Default.GetService<ProcessingLoopService>()!;
         SettingsService.Load(this);
-
-        // Handle edge case where OSC port is used and the system freaks out
         if (OscTarget.OutPort == 0)
         {
             const int Port = 8888;
@@ -60,7 +58,6 @@ public partial class AppSettingsViewModel : ViewModelBase
             Task.Run(async () => await SettingsService.SaveSettingAsync("OSCOutPort", Port));
         }
 
-        // Risky Settings
         ParameterSenderService = Ioc.Default.GetService<ParameterSenderService>()!;
 
         OnboardingEnabled = Utils.IsSupportedDesktopOS;

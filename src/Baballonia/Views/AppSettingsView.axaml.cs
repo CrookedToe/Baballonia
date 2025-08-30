@@ -18,7 +18,6 @@ public partial class AppSettingsView : UserControl
     private readonly ComboBox _themeComboBox;
     private readonly ComboBox _langComboBox;
 
-
     public AppSettingsView()
     {
         InitializeComponent();
@@ -30,8 +29,6 @@ public partial class AppSettingsView : UserControl
         _languageSelectorService = Ioc.Default.GetService<ILanguageSelectorService>()!;
         _langComboBox = this.Find<ComboBox>("LangCombo")!;
         _langComboBox.SelectionChanged += LangComboBox_SelectionChanged;
-
-    
 
         UpdateThemes();
 
@@ -101,7 +98,6 @@ public partial class AppSettingsView : UserControl
         });
     }
 
-    // Workaround for https://github.com/AvaloniaUI/Avalonia/issues/4460
     private void UpdateThemes()
     {
         var selectedIndex = _themeComboBox.SelectedIndex;
@@ -121,7 +117,4 @@ public partial class AppSettingsView : UserControl
                 break;
         }
     }
-
-    // Filter event handlers have been moved to CalibrationView
 }
-

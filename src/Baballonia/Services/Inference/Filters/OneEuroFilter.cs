@@ -20,11 +20,9 @@ public class OneEuroFilter : IFilter
         this.minCutoff = CreateFilledArray(length, minCutoff);
         this.beta = CreateFilledArray(length, beta);
         this.dCutoff = CreateFilledArray(length, dCutoff);
-        // Previous values.
         this.xPrev = (float[])x0.Clone();
         this.dxPrev = CreateFilledArray(length, dx0);
         this.tPrev = DateTime.UtcNow;
-
     }
 
     public float[] Filter(float[] x)
@@ -43,7 +41,6 @@ public class OneEuroFilter : IFilter
 
         float[] t_e = CreateFilledArray(x.Length, elapsedTime);
 
-        // Derivative
         float[] dx = new float[x.Length];
         for (int i = 0; i < x.Length; i++)
         {
@@ -53,7 +50,6 @@ public class OneEuroFilter : IFilter
         float[] a_d = SmoothingFactor(t_e, dCutoff);
         float[] dxHat = ExponentialSmoothing(a_d, dx, dxPrev);
 
-        // Adjusted cutoff
         float[] cutoff = new float[x.Length];
         for (int i = 0; i < x.Length; i++)
         {
@@ -63,7 +59,6 @@ public class OneEuroFilter : IFilter
         float[] a = SmoothingFactor(t_e, cutoff);
         float[] xHat = ExponentialSmoothing(a, x, xPrev);
 
-        // Store previous values
         xPrev = xHat;
         dxPrev = dxHat;
         tPrev = now;
@@ -101,7 +96,6 @@ public class OneEuroFilter : IFilter
         return result;
     }
 }
-
 
 public class ParameterGroupFilter : IFilter
 {

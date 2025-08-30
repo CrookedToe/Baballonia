@@ -27,7 +27,6 @@ public partial class SliderBindableSetting : ObservableObject
     }
 }
 
-// Enhanced collection that includes filter settings
 public partial class ParameterGroupCollection : ObservableCollection<SliderBindableSetting>
 {
     public string GroupName { get; }
@@ -41,8 +40,6 @@ public partial class ParameterGroupCollection : ObservableCollection<SliderBinda
     }
 }
 
-
-// Base interface for filter settings
 public interface IFilterSettings : INotifyPropertyChanged
 {
     bool Enabled { get; set; }
@@ -50,7 +47,6 @@ public interface IFilterSettings : INotifyPropertyChanged
     float SpeedCutoff { get; set; }
 }
 
-// Individual filter setting classes with automatic persistence
 public partial class EyeMovementFilterSettings : ObservableObject, IFilterSettings
 {
     [ObservableProperty]
