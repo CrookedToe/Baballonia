@@ -7,21 +7,25 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using Baballonia.Helpers;
 using Baballonia.Services;
 using CommunityToolkit.Mvvm.Input;
+using Baballonia.Services.Inference.Filters;
 
 namespace Baballonia.ViewModels.SplitViewPane;
 
 public partial class CalibrationViewModel : ViewModelBase, IDisposable
 {
-    public ObservableCollection<SliderBindableSetting> EyeSettings { get; set; }
-    public ObservableCollection<SliderBindableSetting> JawSettings { get; set; }
-    public ObservableCollection<SliderBindableSetting> MouthSettings { get; set; }
-    public ObservableCollection<SliderBindableSetting> TongueSettings { get; set; }
-    public ObservableCollection<SliderBindableSetting> NoseSettings { get; set; }
-    public ObservableCollection<SliderBindableSetting> CheekSettings { get; set; }
+    // Parameter groups with integrated filter settings
+    public ParameterGroupCollection EyeMovementSettings { get; set; }
+    public ParameterGroupCollection EyeBlinkingSettings { get; set; }
+    public ParameterGroupCollection JawSettings { get; set; }
+    public ParameterGroupCollection MouthSettings { get; set; }
+    public ParameterGroupCollection TongueSettings { get; set; }
+    public ParameterGroupCollection NoseSettings { get; set; }
+    public ParameterGroupCollection CheekSettings { get; set; }
 
     private ILocalSettingsService _settingsService { get; }
     private readonly ICalibrationService _calibrationService;
@@ -37,35 +41,45 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         _parameterSenderService = Ioc.Default.GetService<ParameterSenderService>()!;
         _processingLoopService = Ioc.Default.GetService<ProcessingLoopService>()!;
 
-        EyeSettings =
+
+        // Create integrated parameter groups with filter settings
+        EyeMovementSettings = new ParameterGroupCollection("EyeMovement", new EyeMovementFilterSettings(_settingsService),
+        [
+            new("LeftEyeX", -1f, 1f, -1f, 1f),
+            new("LeftEyeY", -1f, 1f, -1f, 1f),
+            new("RightEyeX", -1f, 1f, -1f, 1f),
+            new("RightEyeY", -1f, 1f, -1f, 1f)
+        ]);
+
+        EyeBlinkingSettings = new ParameterGroupCollection("EyeBlinking", new EyeBlinkingFilterSettings(_settingsService),
         [
             new("LeftEyeLid"),
             new("RightEyeLid")
-        ];
+        ]);
 
-        JawSettings =
+        JawSettings = new ParameterGroupCollection("Jaw", new JawFilterSettings(_settingsService),
         [
             new("JawOpen"),
             new("JawForward"),
             new("JawLeft"),
             new("JawRight")
-        ];
+        ]);
 
-        CheekSettings =
+        CheekSettings = new ParameterGroupCollection("Cheek", new CheekFilterSettings(_settingsService),
         [
             new("CheekPuffLeft"),
             new("CheekPuffRight"),
             new("CheekSuckLeft"),
             new("CheekSuckRight")
-        ];
+        ]);
 
-        NoseSettings =
+        NoseSettings = new ParameterGroupCollection("Nose", new NoseFilterSettings(_settingsService),
         [
             new("NoseSneerLeft"),
             new("NoseSneerRight")
-        ];
+        ]);
 
-        MouthSettings =
+        MouthSettings = new ParameterGroupCollection("Mouth", new MouthFilterSettings(_settingsService),
         [
             new("MouthFunnel"),
             new("MouthPucker"),
@@ -90,9 +104,9 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
             new("MouthPressRight"),
             new("MouthStretchLeft"),
             new("MouthStretchRight")
-        ];
+        ]);
 
-        TongueSettings =
+        TongueSettings = new ParameterGroupCollection("Tongue", new TongueFilterSettings(_settingsService),
         [
             new("TongueOut"),
             new("TongueUp"),
@@ -106,12 +120,20 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
             new("TongueFlat"),
             new("TongueTwistLeft"),
             new("TongueTwistRight")
-        ];
+        ]);
 
-        foreach (var setting in EyeSettings.Concat(JawSettings).Concat(CheekSettings)
+        foreach (var setting in EyeMovementSettings.Concat(EyeBlinkingSettings).Concat(JawSettings).Concat(CheekSettings)
                      .Concat(NoseSettings).Concat(MouthSettings).Concat(TongueSettings))
         {
             setting.PropertyChanged += OnSettingChanged;
+        }
+
+        // Set up filter setting change handlers for processing pipeline updates
+        var allParameterGroups = new[] { EyeMovementSettings, EyeBlinkingSettings, JawSettings, 
+                                        MouthSettings, TongueSettings, NoseSettings, CheekSettings };
+        foreach (var group in allParameterGroups)
+        {
+            group.FilterSettings.PropertyChanged += OnFilterSettingChanged;
         }
 
         // Convert dictionary order into index mapping
@@ -143,6 +165,7 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         _processingLoopService.ExpressionChangeEvent += ExpressionUpdateHandler;
 
         LoadInitialSettings();
+        UpdateProcessingFilters();
     }
 
     private void ExpressionUpdateHandler(ProcessingLoopService.Expressions expressions)
@@ -159,7 +182,8 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         if(expressions.EyeExpression != null)
             Dispatcher.UIThread.Post(() =>
             {
-                ApplyCurrentEyeExpressionValues(expressions.EyeExpression, EyeSettings);
+                ApplyCurrentEyeExpressionValues(expressions.EyeExpression, EyeMovementSettings);
+                ApplyCurrentEyeExpressionValues(expressions.EyeExpression, EyeBlinkingSettings);
             });
     }
     private void OnSettingChanged(object? sender, PropertyChangedEventArgs e)
@@ -236,7 +260,8 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
 
     private void LoadInitialSettings()
     {
-        LoadInitialSettings(EyeSettings);
+        LoadInitialSettings(EyeMovementSettings);
+        LoadInitialSettings(EyeBlinkingSettings);
         LoadInitialSettings(CheekSettings);
         LoadInitialSettings(JawSettings);
         LoadInitialSettings(MouthSettings);
@@ -256,8 +281,65 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         }
     }
 
+    private void OnFilterSettingChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        UpdateProcessingFilters();
+    }
+
+
+
+    private void UpdateProcessingFilters()
+    {
+        var faceGroupFilter = new ParameterGroupFilter();
+        var eyeGroupFilter = new ParameterGroupFilter();
+
+        // Configure eye filters
+        if (EyeMovementSettings.FilterSettings.Enabled)
+        {
+            int[] eyeMovementIndices = { 0, 1, 3, 4 }; // LeftEyeX, LeftEyeY, RightEyeX, RightEyeY
+            eyeGroupFilter.ConfigureGroupFilter("EyeMovement", eyeMovementIndices, 
+                EyeMovementSettings.FilterSettings.MinFreqCutoff, EyeMovementSettings.FilterSettings.SpeedCutoff);
+        }
+
+        if (EyeBlinkingSettings.FilterSettings.Enabled)
+        {
+            int[] eyeBlinkingIndices = { 2, 5 }; // LeftEyeLid, RightEyeLid
+            eyeGroupFilter.ConfigureGroupFilter("EyeBlinking", eyeBlinkingIndices, 
+                EyeBlinkingSettings.FilterSettings.MinFreqCutoff, EyeBlinkingSettings.FilterSettings.SpeedCutoff);
+        }
+
+        // Configure face filters
+        var faceParameterGroups = new[] { JawSettings, MouthSettings, TongueSettings, NoseSettings, CheekSettings };
+        foreach (var group in faceParameterGroups)
+        {
+            if (group.FilterSettings.Enabled)
+            {
+                var indices = GetFaceParameterIndices(group);
+                faceGroupFilter.ConfigureGroupFilter(group.GroupName, indices, 
+                    group.FilterSettings.MinFreqCutoff, group.FilterSettings.SpeedCutoff);
+            }
+        }
+
+        _processingLoopService.FaceProcessingPipeline.Filter = faceGroupFilter;
+        _processingLoopService.EyesProcessingPipeline.Filter = eyeGroupFilter;
+    }
+
+    private int[] GetFaceParameterIndices(ParameterGroupCollection group)
+    {
+        return group.Select(setting => _faceKeyIndexMap.TryGetValue(setting.Name, out var index) ? index : -1)
+                   .Where(index => index >= 0)
+                   .ToArray();
+    }
+
     public void Dispose()
     {
-        // _processingLoopService.ExpressionUpdateEvent -= ExpressionUpdateHandler;
+        _processingLoopService.ExpressionChangeEvent -= ExpressionUpdateHandler;
+        
+        var allParameterGroups = new[] { EyeMovementSettings, EyeBlinkingSettings, JawSettings, 
+                                        MouthSettings, TongueSettings, NoseSettings, CheekSettings };
+        foreach (var group in allParameterGroups)
+        {
+            group.FilterSettings.PropertyChanged -= OnFilterSettingChanged;
+        }
     }
 }

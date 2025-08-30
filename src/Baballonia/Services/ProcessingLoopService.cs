@@ -49,59 +49,12 @@ public class ProcessingLoopService : IDisposable
 
         _ = SetupFaceInference();
         _ = SetupEyeInference();
-        _ = LoadFilters();
 
         _drawTimer.Tick += TimerEvent;
         _drawTimer.Start();
     }
 
-    private async Task LoadFilters()
-    {
-        // Load face tracking filter settings
-        var faceEnabled = await _localSettingsService.ReadSettingAsync<bool>("AppSettings_FaceOneEuroEnabled");
-        var faceCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_FaceOneEuroMinFreqCutoff");
-        var faceSpeedCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_FaceOneEuroSpeedCutoff");
 
-        // Load eye tracking filter settings
-        var eyeEnabled = await _localSettingsService.ReadSettingAsync<bool>("AppSettings_EyeOneEuroEnabled");
-        var eyeCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_EyeOneEuroMinFreqCutoff");
-        var eyeSpeedCutoff = await _localSettingsService.ReadSettingAsync<float>("AppSettings_EyeOneEuroSpeedCutoff");
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            // Setup face tracking filter
-            if (faceEnabled)
-            {
-                float[] faceArray = new float[Utils.FaceRawExpressions];
-                var faceFilter = new OneEuroFilter(
-                    faceArray,
-                    minCutoff: faceCutoff,
-                    beta: faceSpeedCutoff
-                );
-                FaceProcessingPipeline.Filter = faceFilter;
-            }
-            else
-            {
-                FaceProcessingPipeline.Filter = null;
-            }
-
-            // Setup eye tracking filter
-            if (eyeEnabled)
-            {
-                float[] eyeArray = new float[Utils.EyeRawExpressions];
-                var eyeFilter = new OneEuroFilter(
-                    eyeArray,
-                    minCutoff: eyeCutoff,
-                    beta: eyeSpeedCutoff
-                );
-                EyesProcessingPipeline.Filter = eyeFilter;
-            }
-            else
-            {
-                EyesProcessingPipeline.Filter = null;
-            }
-        });
-    }
 
     public async Task SetupEyeInference()
     {

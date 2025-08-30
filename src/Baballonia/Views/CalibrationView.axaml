@@ -54,13 +54,115 @@
         </StackPanel>
       </StackPanel>
 
-      <!--  Eye Expressions Expander  -->
+      <!--  Eye Movement Expander  -->
       <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
         <Expander.Header>
-          <TextBlock FontWeight="SemiBold" Text="Eye Expressions" />
+          <TextBlock FontWeight="SemiBold" Text="Eye Movement" />
         </Expander.Header>
         <StackPanel Margin="0,5">
-          <ItemsControl ItemsSource="{Binding EyeSettings}">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" 
+                  CornerRadius="6" 
+                  Padding="12"
+                  Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" 
+                             Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" 
+                          VerticalAlignment="Center"
+                          IsChecked="{Binding EyeMovementSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              
+              <StackPanel IsVisible="{Binding EyeMovementSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1"
+                          Value="{Binding EyeMovementSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding EyeMovementSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1"
+                          Value="{Binding EyeMovementSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding EyeMovementSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
+          <ItemsControl ItemsSource="{Binding EyeMovementSettings}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:SliderBindableSetting">
+                <Border
+                  Margin="0,0,0,8"
+                  Padding="16"
+                  Background="{DynamicResource SystemChromeMediumLowColor}"
+                  CornerRadius="8">
+                  <Grid>
+                    <StackPanel>
+                      <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Run FontWeight="SemiBold" Text="{Binding Name} " />
+                        <Run Text="{Binding Lower, StringFormat={}{0:0.00}}" />
+                        <Run Text="-" />
+                        <Run Text="{Binding Upper, StringFormat={}{0:0.00}}" />
+                      </TextBlock>
+                      <twoRangeSlider:RangeSlider
+                        LowerSelectedValue="{Binding Lower, Mode=TwoWay}"
+                        Maximum="1"
+                        Minimum="-1"
+                        TickFrequency="0.01"
+                        ShowMiddleThumb="True"
+                        MiddleSelectedValue="{Binding CurrentExpression, Mode=OneWay}"
+                        UpperSelectedValue="{Binding Upper, Mode=TwoWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Expander>
+
+      <!--  Eye Blinking Expander  -->
+      <Expander Margin="0,12,0,0" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock FontWeight="SemiBold" Text="Eye Blinking" />
+        </Expander.Header>
+        <StackPanel Margin="0,5">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="6" Padding="12" Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EyeBlinkingSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              <StackPanel IsVisible="{Binding EyeBlinkingSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding EyeBlinkingSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding EyeBlinkingSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding EyeBlinkingSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding EyeBlinkingSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
+          <ItemsControl ItemsSource="{Binding EyeBlinkingSettings}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:SliderBindableSetting">
                 <Border
@@ -99,6 +201,33 @@
           <TextBlock FontWeight="SemiBold" Text="Cheek Expressions" />
         </Expander.Header>
         <StackPanel Margin="0,5">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="6" Padding="12" Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding CheekSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              <StackPanel IsVisible="{Binding CheekSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding CheekSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding CheekSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding CheekSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding CheekSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
           <ItemsControl ItemsSource="{Binding CheekSettings}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:SliderBindableSetting">
@@ -138,6 +267,33 @@
           <TextBlock FontWeight="SemiBold" Text="Jaw Expressions" />
         </Expander.Header>
         <StackPanel Margin="0,5">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="6" Padding="12" Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding JawSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              <StackPanel IsVisible="{Binding JawSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding JawSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding JawSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding JawSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding JawSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
           <ItemsControl ItemsSource="{Binding JawSettings}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:SliderBindableSetting">
@@ -177,6 +333,33 @@
           <TextBlock FontWeight="SemiBold" Text="Nose Expressions" />
         </Expander.Header>
         <StackPanel Margin="0,5">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="6" Padding="12" Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding NoseSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              <StackPanel IsVisible="{Binding NoseSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding NoseSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding NoseSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding NoseSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding NoseSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
           <ItemsControl ItemsSource="{Binding NoseSettings}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:SliderBindableSetting">
@@ -216,6 +399,33 @@
           <TextBlock FontWeight="SemiBold" Text="Mouth Expressions" />
         </Expander.Header>
         <StackPanel Margin="0,5">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="6" Padding="12" Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding MouthSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              <StackPanel IsVisible="{Binding MouthSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding MouthSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding MouthSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding MouthSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding MouthSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
           <ItemsControl ItemsSource="{Binding MouthSettings}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:SliderBindableSetting">
@@ -255,6 +465,33 @@
           <TextBlock FontWeight="SemiBold" Text="Tongue Expressions" />
         </Expander.Header>
         <StackPanel Margin="0,5">
+
+          <Border Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="6" Padding="12" Margin="0,4">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
+                  <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
+                </StackPanel>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding TongueSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+              </Grid>
+              <StackPanel IsVisible="{Binding TongueSettings.FilterSettings.Enabled}" Spacing="6">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding TongueSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding TongueSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding TongueSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Text="{Binding TongueSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
           <ItemsControl ItemsSource="{Binding TongueSettings}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:SliderBindableSetting">

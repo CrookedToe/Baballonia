@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Baballonia.Services.Inference.Filters;
 
@@ -99,5 +100,84 @@ public class OneEuroFilter : IFilter
         }
         return result;
     }
+}
 
+
+public class ParameterGroupFilter : IFilter
+{
+    private readonly Dictionary<string, OneEuroFilter> _groupFilters;
+    private readonly Dictionary<int, string> _parameterIndexToGroup;
+    
+    public ParameterGroupFilter()
+    {
+        _groupFilters = new Dictionary<string, OneEuroFilter>();
+        _parameterIndexToGroup = new Dictionary<int, string>();
+    }
+
+    public void ConfigureGroupFilter(string groupName, int[] parameterIndices, float minCutoff, float beta)
+    {
+        float[] dummyArray = new float[parameterIndices.Length];
+        var filter = new OneEuroFilter(dummyArray, minCutoff, beta);
+        
+        _groupFilters[groupName] = filter;
+        
+        for (int i = 0; i < parameterIndices.Length; i++)
+        {
+            _parameterIndexToGroup[parameterIndices[i]] = groupName;
+        }
+    }
+
+    public void DisableGroupFilter(string groupName)
+    {
+        _groupFilters.Remove(groupName);
+        
+        var keysToRemove = _parameterIndexToGroup.Where(kvp => kvp.Value == groupName).Select(kvp => kvp.Key).ToArray();
+        foreach (var key in keysToRemove)
+        {
+            _parameterIndexToGroup.Remove(key);
+        }
+    }
+
+    public float[] Filter(float[] input)
+    {
+        if (!_groupFilters.Any())
+        {
+            return input;
+        }
+
+        float[] result = (float[])input.Clone();
+        
+        var groupedParameters = new Dictionary<string, List<(int index, float value)>>();
+        
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (_parameterIndexToGroup.TryGetValue(i, out string? groupName))
+            {
+                if (!groupedParameters.ContainsKey(groupName))
+                {
+                    groupedParameters[groupName] = new List<(int, float)>();
+                }
+                groupedParameters[groupName].Add((i, input[i]));
+            }
+        }
+
+        foreach (var group in groupedParameters)
+        {
+            string groupName = group.Key;
+            var parameters = group.Value;
+            
+            if (_groupFilters.TryGetValue(groupName, out OneEuroFilter? filter))
+            {
+                float[] groupValues = parameters.Select(p => p.value).ToArray();
+                float[] filteredValues = filter.Filter(groupValues);
+                
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    result[parameters[i].index] = filteredValues[i];
+                }
+            }
+        }
+
+        return result;
+    }
 }

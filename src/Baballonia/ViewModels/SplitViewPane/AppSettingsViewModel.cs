@@ -32,32 +32,6 @@ public partial class AppSettingsViewModel : ViewModelBase
     [property: SavedSetting("AppSettings_OSCPrefix", "")]
     private string _oscPrefix;
 
-    // Face tracking filter settings
-    [ObservableProperty]
-    [property: SavedSetting("AppSettings_FaceOneEuroEnabled", false)]
-    private bool _faceOneEuroEnabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("AppSettings_FaceOneEuroMinFreqCutoff", 1f)]
-    private float _faceOneEuroMinFreqCutoff;
-
-    [ObservableProperty]
-    [property: SavedSetting("AppSettings_FaceOneEuroSpeedCutoff", 1f)]
-    private float _faceOneEuroSpeedCutoff;
-
-    // Eye tracking filter settings
-    [ObservableProperty]
-    [property: SavedSetting("AppSettings_EyeOneEuroEnabled", false)]
-    private bool _eyeOneEuroEnabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("AppSettings_EyeOneEuroMinFreqCutoff", 0.1f)]
-    private float _eyeOneEuroMinFreqCutoff;
-
-    [ObservableProperty]
-    [property: SavedSetting("AppSettings_EyeOneEuroSpeedCutoff", 0.1f)]
-    private float _eyeOneEuroSpeedCutoff;
-
     [ObservableProperty]
     [property: SavedSetting("AppSettings_UseGPU", true)]
     private bool _useGPU;
@@ -93,38 +67,6 @@ public partial class AppSettingsViewModel : ViewModelBase
 
         PropertyChanged += (_, _) =>
         {
-            // Update face tracking filter
-            if (!_faceOneEuroEnabled)
-            {
-                _processingLoopService.FaceProcessingPipeline.Filter = null;
-            }
-            else
-            {
-                float[] faceArray = new float[Utils.FaceRawExpressions];
-                var faceFilter = new OneEuroFilter(
-                    faceArray,
-                    minCutoff: _faceOneEuroMinFreqCutoff,
-                    beta: _faceOneEuroSpeedCutoff
-                );
-                _processingLoopService.FaceProcessingPipeline.Filter = faceFilter;
-            }
-
-            // Update eye tracking filter
-            if (!_eyeOneEuroEnabled)
-            {
-                _processingLoopService.EyesProcessingPipeline.Filter = null;
-            }
-            else
-            {
-                float[] eyeArray = new float[Utils.EyeRawExpressions];
-                var eyeFilter = new OneEuroFilter(
-                    eyeArray,
-                    minCutoff: _eyeOneEuroMinFreqCutoff,
-                    beta: _eyeOneEuroSpeedCutoff
-                );
-                _processingLoopService.EyesProcessingPipeline.Filter = eyeFilter;
-            }
-
             SettingsService.Save(this);
         };
     }
