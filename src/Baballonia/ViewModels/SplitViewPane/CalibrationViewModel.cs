@@ -41,7 +41,6 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         _parameterSenderService = Ioc.Default.GetService<ParameterSenderService>()!;
         _processingLoopService = Ioc.Default.GetService<ProcessingLoopService>()!;
 
-
         // Create integrated parameter groups with filter settings
         EyeMovementSettings = new ParameterGroupCollection("EyeMovement", new EyeMovementFilterSettings(_settingsService),
         [
@@ -204,7 +203,7 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         });
     }
 
-    private void ApplyCurrentEyeExpressionValues(float[] values, IEnumerable<SliderBindableSetting> settings)
+    private void ApplyCurrentEyeExpressionValues(float[] values, ParameterGroupCollection settings)
     {
         foreach (var setting in settings)
         {
@@ -221,7 +220,7 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void ApplyCurrentFaceExpressionValues(float[] values, IEnumerable<SliderBindableSetting> settings)
+    private void ApplyCurrentFaceExpressionValues(float[] values, ParameterGroupCollection settings)
     {
         foreach (var setting in settings)
         {
@@ -334,7 +333,7 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
     public void Dispose()
     {
         _processingLoopService.ExpressionChangeEvent -= ExpressionUpdateHandler;
-        
+
         var allParameterGroups = new[] { EyeMovementSettings, EyeBlinkingSettings, JawSettings, 
                                         MouthSettings, TongueSettings, NoseSettings, CheekSettings };
         foreach (var group in allParameterGroups)
