@@ -14,7 +14,6 @@ public partial class AppSettingsView : UserControl
 {
     private readonly IThemeSelectorService _themeSelectorService;
     private readonly ILanguageSelectorService _languageSelectorService;
-    private readonly IMainService _mainService;
     private readonly ComboBox _themeComboBox;
     private readonly ComboBox _langComboBox;
 
@@ -31,8 +30,6 @@ public partial class AppSettingsView : UserControl
         _langComboBox.SelectionChanged += LangComboBox_SelectionChanged;
 
         UpdateThemes();
-
-        _mainService = Ioc.Default.GetService<IMainService>()!;
 
         if (_themeSelectorService.Theme is null)
         {
