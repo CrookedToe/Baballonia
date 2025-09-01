@@ -74,23 +74,23 @@
                 </StackPanel>
                 <CheckBox Grid.Column="1" 
                           VerticalAlignment="Center"
-                          IsChecked="{Binding EyeMovementSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                          IsChecked="{Binding EyeMovementSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               
               <StackPanel IsVisible="{Binding EyeMovementSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
                   <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1"
-                          Value="{Binding EyeMovementSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                          Value="{Binding EyeMovementSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding EyeMovementSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding EyeMovementSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
                   <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1"
-                          Value="{Binding EyeMovementSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                          Value="{Binding EyeMovementSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding EyeMovementSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding EyeMovementSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>
@@ -143,20 +143,20 @@
                   <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
                   <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EyeBlinkingSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EyeBlinkingSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               <StackPanel IsVisible="{Binding EyeBlinkingSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding EyeBlinkingSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding EyeBlinkingSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding EyeBlinkingSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding EyeBlinkingSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding EyeBlinkingSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding EyeBlinkingSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding EyeBlinkingSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding EyeBlinkingSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>
@@ -209,20 +209,20 @@
                   <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
                   <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding CheekSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding CheekSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               <StackPanel IsVisible="{Binding CheekSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding CheekSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding CheekSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding CheekSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding CheekSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding CheekSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding CheekSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding CheekSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding CheekSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>
@@ -275,20 +275,20 @@
                   <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
                   <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding JawSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding JawSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               <StackPanel IsVisible="{Binding JawSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding JawSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding JawSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding JawSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding JawSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding JawSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding JawSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding JawSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding JawSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>
@@ -341,20 +341,20 @@
                   <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
                   <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding NoseSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding NoseSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               <StackPanel IsVisible="{Binding NoseSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding NoseSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding NoseSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding NoseSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding NoseSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding NoseSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding NoseSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding NoseSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding NoseSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>
@@ -407,20 +407,20 @@
                   <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
                   <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding MouthSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding MouthSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               <StackPanel IsVisible="{Binding MouthSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding MouthSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding MouthSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding MouthSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding MouthSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding MouthSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding MouthSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding MouthSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding MouthSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>
@@ -473,20 +473,20 @@
                   <TextBlock Text="Enable Filtering" FontWeight="SemiBold"/>
                   <TextBlock Text="Apply smoothing to reduce jitter" FontSize="12" Foreground="{DynamicResource SystemBaseMediumColor}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding TongueSettings.FilterSettings.Enabled, Mode=TwoWay}"/>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding TongueSettings.FilterSettings.Enabled, Mode=TwoWay, FallbackValue=false}"/>
               </Grid>
               <StackPanel IsVisible="{Binding TongueSettings.FilterSettings.Enabled}" Spacing="6">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Min Cutoff:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding TongueSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding TongueSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding TongueSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding TongueSettings.FilterSettings.MinFreqCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Width="70"/>
-                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding TongueSettings.FilterSettings.SpeedCutoff, Mode=TwoWay}" Margin="8,0"/>
+                  <Slider Grid.Column="1" Minimum="0.1" Maximum="5.0" TickFrequency="0.1" Value="{Binding TongueSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}" Margin="8,0"/>
                   <TextBox Grid.Column="2" Width="60" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Text="{Binding TongueSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1}"/>
+                           Text="{Binding TongueSettings.FilterSettings.SpeedCutoff, Mode=TwoWay, StringFormat=F1, UpdateSourceTrigger=PropertyChanged, FallbackValue=1.0}"/>
                 </Grid>
               </StackPanel>
             </StackPanel>

@@ -3,6 +3,8 @@ using Baballonia.Contracts;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 
 namespace Baballonia.Models;
 
@@ -47,149 +49,53 @@ public interface IFilterSettings : INotifyPropertyChanged
     float SpeedCutoff { get; set; }
 }
 
-public partial class EyeMovementFilterSettings : ObservableObject, IFilterSettings
+public partial class GroupFilterSettings : ObservableObject, IFilterSettings
 {
+    private readonly ILocalSettingsService _localSettingsService;
+    private readonly string _prefix;
+
     [ObservableProperty]
-    [property: SavedSetting("Filter_EyeMovement_Enabled", false)]
     private bool _enabled;
 
     [ObservableProperty]
-    [property: SavedSetting("Filter_EyeMovement_MinFreq", 0.1f)]
-    private float _minFreqCutoff = 0.1f;
+    private float _minFreqCutoff;
 
     [ObservableProperty]
-    [property: SavedSetting("Filter_EyeMovement_Speed", 0.1f)]
-    private float _speedCutoff = 0.1f;
+    private float _speedCutoff;
 
-    public EyeMovementFilterSettings(ILocalSettingsService localSettingsService)
+    public GroupFilterSettings(ILocalSettingsService localSettingsService, string settingPrefix,
+        bool defaultEnabled, float defaultMinFreqCutoff, float defaultSpeedCutoff)
     {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
-    }
-}
+        _localSettingsService = localSettingsService;
+        _prefix = settingPrefix;
 
-public partial class EyeBlinkingFilterSettings : ObservableObject, IFilterSettings
-{
-    [ObservableProperty]
-    [property: SavedSetting("Filter_EyeBlinking_Enabled", false)]
-    private bool _enabled;
+        // Initialize with safe defaults to keep UI bindings within slider ranges
+        Enabled = defaultEnabled;
+        MinFreqCutoff = defaultMinFreqCutoff;
+        SpeedCutoff = defaultSpeedCutoff;
 
-    [ObservableProperty]
-    [property: SavedSetting("Filter_EyeBlinking_MinFreq", 0.5f)]
-    private float _minFreqCutoff = 0.5f;
+        // Load persisted values, falling back to provided defaults
+        Task.Run(async () =>
+        {
+            var enabled = await _localSettingsService.ReadSettingAsync($"{_prefix}_Enabled", defaultEnabled);
+            var min = await _localSettingsService.ReadSettingAsync($"{_prefix}_MinFreq", defaultMinFreqCutoff);
+            var speed = await _localSettingsService.ReadSettingAsync($"{_prefix}_Speed", defaultSpeedCutoff);
+            Dispatcher.UIThread.Post(() =>
+            {
+                Enabled = enabled;
+                MinFreqCutoff = min;
+                SpeedCutoff = speed;
+            });
+        });
 
-    [ObservableProperty]
-    [property: SavedSetting("Filter_EyeBlinking_Speed", 0.5f)]
-    private float _speedCutoff = 0.5f;
-
-    public EyeBlinkingFilterSettings(ILocalSettingsService localSettingsService)
-    {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
-    }
-}
-
-public partial class JawFilterSettings : ObservableObject, IFilterSettings
-{
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Jaw_Enabled", false)]
-    private bool _enabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Jaw_MinFreq", 1.0f)]
-    private float _minFreqCutoff = 1.0f;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Jaw_Speed", 1.0f)]
-    private float _speedCutoff = 1.0f;
-
-    public JawFilterSettings(ILocalSettingsService localSettingsService)
-    {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
-    }
-}
-
-public partial class MouthFilterSettings : ObservableObject, IFilterSettings
-{
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Mouth_Enabled", false)]
-    private bool _enabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Mouth_MinFreq", 1.0f)]
-    private float _minFreqCutoff = 1.0f;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Mouth_Speed", 1.0f)]
-    private float _speedCutoff = 1.0f;
-
-    public MouthFilterSettings(ILocalSettingsService localSettingsService)
-    {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
-    }
-}
-
-public partial class TongueFilterSettings : ObservableObject, IFilterSettings
-{
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Tongue_Enabled", false)]
-    private bool _enabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Tongue_MinFreq", 1.0f)]
-    private float _minFreqCutoff = 1.0f;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Tongue_Speed", 1.0f)]
-    private float _speedCutoff = 1.0f;
-
-    public TongueFilterSettings(ILocalSettingsService localSettingsService)
-    {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
-    }
-}
-
-public partial class NoseFilterSettings : ObservableObject, IFilterSettings
-{
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Nose_Enabled", false)]
-    private bool _enabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Nose_MinFreq", 1.0f)]
-    private float _minFreqCutoff = 1.0f;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Nose_Speed", 1.0f)]
-    private float _speedCutoff = 1.0f;
-
-    public NoseFilterSettings(ILocalSettingsService localSettingsService)
-    {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
-    }
-}
-
-public partial class CheekFilterSettings : ObservableObject, IFilterSettings
-{
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Cheek_Enabled", false)]
-    private bool _enabled;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Cheek_MinFreq", 1.0f)]
-    private float _minFreqCutoff = 1.0f;
-
-    [ObservableProperty]
-    [property: SavedSetting("Filter_Cheek_Speed", 1.0f)]
-    private float _speedCutoff = 1.0f;
-
-    public CheekFilterSettings(ILocalSettingsService localSettingsService)
-    {
-        localSettingsService.Load(this);
-        PropertyChanged += (_, _) => localSettingsService.Save(this);
+        PropertyChanged += async (_, e) =>
+        {
+            if (e.PropertyName == nameof(Enabled))
+                await _localSettingsService.SaveSettingAsync($"{_prefix}_Enabled", Enabled);
+            else if (e.PropertyName == nameof(MinFreqCutoff))
+                await _localSettingsService.SaveSettingAsync($"{_prefix}_MinFreq", MinFreqCutoff);
+            else if (e.PropertyName == nameof(SpeedCutoff))
+                await _localSettingsService.SaveSettingAsync($"{_prefix}_Speed", SpeedCutoff);
+        };
     }
 }
