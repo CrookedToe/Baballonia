@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Baballonia.Services.Inference;
 
 namespace Baballonia.Services.Inference.Filters;
 
@@ -30,8 +29,8 @@ public class GroupedOneEuroFilter : IFilter
             Indices = (int[])parameterIndices.Clone(),
             XPrev = new float[parameterIndices.Length],
             DxPrev = new float[parameterIndices.Length],
-            MinCutoff = Math.Max(0.001f, minCutoff), // Ensure minimum cutoff
-            Beta = Math.Max(0f, beta), // Ensure non-negative beta
+            MinCutoff = Math.Max(0.001f, minCutoff), 
+            Beta = Math.Max(0f, beta), 
             TPrev = DateTime.UtcNow,
             Initialized = false
         };

@@ -18,7 +18,6 @@ namespace Baballonia.ViewModels.SplitViewPane;
 
 public partial class CalibrationViewModel : ViewModelBase, IDisposable
 {
-    // Parameter groups with integrated filter settings
     public ParameterGroupCollection EyeMovementSettings { get; set; }
     public ParameterGroupCollection EyeBlinkingSettings { get; set; }
     public ParameterGroupCollection JawSettings { get; set; }
@@ -134,7 +133,6 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
             group.FilterSettings.PropertyChanged += OnFilterSettingChanged;
         }
 
-        // Create index mappings for parameter lookups
         _eyeKeyIndexMap = _parameterSenderService.EyeExpressionMap.Keys
             .Select((key, index) => new { key, index })
             .ToDictionary(x => x.key, x => x.index);
@@ -311,7 +309,7 @@ public partial class CalibrationViewModel : ViewModelBase, IDisposable
             if (group.FilterSettings.Enabled)
             {
                 var indices = GetFaceParameterIndices(group);
-                if (indices.Length > 0) // Only configure if we have valid indices
+                if (indices.Length > 0)
                 {
                     faceGroupFilter.ConfigureGroup(group.GroupName, indices,
                         group.FilterSettings.MinFreqCutoff, group.FilterSettings.SpeedCutoff);

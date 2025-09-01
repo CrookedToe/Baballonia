@@ -69,12 +69,10 @@ public partial class GroupFilterSettings : ObservableObject, IFilterSettings
         _localSettingsService = localSettingsService;
         _prefix = settingPrefix;
 
-        // Initialize with safe defaults to keep UI bindings within slider ranges
         Enabled = defaultEnabled;
         MinFreqCutoff = defaultMinFreqCutoff;
         SpeedCutoff = defaultSpeedCutoff;
 
-        // Load persisted values, falling back to provided defaults
         Task.Run(async () =>
         {
             var enabled = await _localSettingsService.ReadSettingAsync($"{_prefix}_Enabled", defaultEnabled);
@@ -90,12 +88,18 @@ public partial class GroupFilterSettings : ObservableObject, IFilterSettings
 
         PropertyChanged += async (_, e) =>
         {
-            if (e.PropertyName == nameof(Enabled))
-                await _localSettingsService.SaveSettingAsync($"{_prefix}_Enabled", Enabled);
-            else if (e.PropertyName == nameof(MinFreqCutoff))
-                await _localSettingsService.SaveSettingAsync($"{_prefix}_MinFreq", MinFreqCutoff);
-            else if (e.PropertyName == nameof(SpeedCutoff))
-                await _localSettingsService.SaveSettingAsync($"{_prefix}_Speed", SpeedCutoff);
+            switch (e.PropertyName)
+            {
+                case nameof(Enabled):
+                    await _localSettingsService.SaveSettingAsync($"{_prefix}_Enabled", Enabled);
+                    break;
+                case nameof(MinFreqCutoff):
+                    await _localSettingsService.SaveSettingAsync($"{_prefix}_MinFreq", MinFreqCutoff);
+                    break;
+                case nameof(SpeedCutoff):
+                    await _localSettingsService.SaveSettingAsync($"{_prefix}_Speed", SpeedCutoff);
+                    break;
+            }
         };
     }
 }

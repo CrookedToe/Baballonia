@@ -1,5 +1,0 @@
-[33m7143637[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/separate-eye-face-tracking-filters[m[33m)[m the stuffs
-[33mefc8053[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Import Windows Overlay/Trainer deps
-[33m4f9b31f[m Merge pull request #50 from RedInJector/main
-[33mb6c701e[m removed unused gaze, fixed the Eyelid sliders
-[33m507d88e[m Merge pull request #49 from Project-Babble/feat/SearchableComboBox
