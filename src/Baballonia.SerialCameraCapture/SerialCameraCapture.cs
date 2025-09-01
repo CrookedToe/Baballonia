@@ -32,7 +32,7 @@ public sealed class SerialCameraCapture(string source, ILogger logger) : Capture
         return lowered.StartsWith("com") ||
                lowered.StartsWith("/dev/tty") ||
                lowered.StartsWith("/dev/cu") ||
-               lowered.StartsWith("/dev/ttyacm");;
+               lowered.StartsWith("/dev/ttyacm");
     }
 
     public override Task<bool> StartCapture()
@@ -86,9 +86,9 @@ public sealed class SerialCameraCapture(string source, ILogger logger) : Capture
                 var newFrame = Mat.FromImageData(buffer);
                 // Only update the frame count if the image data has actually changed
                 if (newFrame.Width > 0 && newFrame.Height > 0)
-                {
-                    newFrame.CopyTo(RawMat);
-                }
+                    SetRawMat(newFrame);
+                else
+                    newFrame.Dispose();
             }
         }
         catch (ObjectDisposedException)
